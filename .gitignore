@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# Data files (keep sample data)
+*.csv
+!county_ucs_final.csv
+
+# Streamlit
+.streamlit/
+.streamlit/secrets.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (optional - may be large)
+*.pkl
+*.pickle
+
+# Jupyter
+.ipynb_checkpoints/
