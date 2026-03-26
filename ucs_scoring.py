@@ -170,7 +170,6 @@ def compute_composite_scores(
     INDICATORS: dict,
     DOMAIN_NAMES: list[str],
     domain_weights: Optional[dict] = None,
-    weighting_method: str = 'weighted_variance',  # 'weighted_variance', 'variance', 'cv', or 'equal'
     imputation_strategy: str = 'mean',
     verbose: bool = True
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
@@ -186,14 +185,7 @@ def compute_composite_scores(
     DOMAIN_NAMES : list[str]
         List of domain names to include in UCS
     domain_weights : dict | None, optional
-        Optional custom weights for each domain. If provided, overrides weighting_method.
-    weighting_method : str, default 'weighted_variance'
-        Method for calculating domain weights when domain_weights is None:
-        - 'weighted_variance': Weight by coefficient of variation (CV = std/mean)
-          Higher CV = more relative variability = more discriminative
-        - 'variance': Weight by raw variance (higher variance = more discriminative)
-        - 'cv': Alias for weighted_variance
-        - 'equal': Equal weights for all domains
+        Optional weights for each domain. If None, uses equal weights.
     imputation_strategy : str, default 'mean'
         Strategy for handling missing values
     verbose : bool, default True
@@ -205,23 +197,6 @@ def compute_composite_scores(
         - composite_scores: DataFrame with domain scores and UCS
         - subindex_scores_df: DataFrame with all subdomain scores
         - subdomain_meta: Dict mapping subdomain names to descriptions
-    
-    Notes on weighting methods:
-    ---------------------------
-    1. Weighted Variance (CV):
-       - CV = standard deviation / mean
-       - Captures RELATIVE variability (normalized by domain level)
-       - Best for domains with different measurement scales
-       - Higher CV = more dispersion relative to the mean
-       
-    2. Raw Variance:
-       - Variance = standard deviation^2
-       - Captures ABSOLUTE variability
-       - May overweight domains with larger absolute values
-       
-    3. Equal Weights:
-       - All domains weighted equally
-       - Simple but may not reflect domain importance
     """
     # Initialize output DataFrames
     composite_scores = pd.DataFrame(index=pivot_df.index)
@@ -290,7 +265,7 @@ def compute_composite_scores(
     if not valid_domains:
         raise ValueError("No valid domains found in composite scores")
     
-    # Apply domain weights if provided, otherwise calculate weights based on weighting_method
+    # Apply domain weights if provided
     if domain_weights:
         # Normalize weights
         total_weight = sum(domain_weights.get(d, 1.0) for d in valid_domains)
@@ -300,50 +275,10 @@ def compute_composite_scores(
         )
         composite_scores['UCS_raw'] = weighted_sum
         if verbose:
-            print(f"\n  ℹ  Using custom domain weights")
-    elif weighting_method in ['weighted_variance', 'cv']:
-        # Weighted Variance (Coefficient of Variation): CV = std / mean
-        # This normalizes variance by the domain's mean level
-        # Higher CV = more relative variability = more discriminative between counties
-        domain_means = composite_scores[valid_domains].mean()
-        domain_stds = composite_scores[valid_domains].std()
-        
-        # Calculate CV (handle zero means to avoid division by zero)
-        cv_values = domain_stds / domain_means.replace(0, np.nan)
-        cv_values = cv_values.fillna(0)
-        
-        # Handle any remaining NaN or inf values
-        cv_values = cv_values.replace([np.inf, -np.inf], 0)
-        
-        # Normalize to get weights
-        cv_weights = cv_values / cv_values.sum()
-        
-        if verbose:
-            print(f"\n  ℹ  Using weighted variance (CV) domain weights:")
-            for d in valid_domains:
-                cv = cv_values[d]
-                weight = cv_weights[d]
-                print(f"      {d.replace(' Index', '')}: {weight:.3f} (CV={cv:.3f}, μ={domain_means[d]:.3f}, σ={domain_stds[d]:.3f})")
-        
-        # Weighted UCS = sum of (domain_score * CV_weight)
-        composite_scores['UCS_raw'] = (composite_scores[valid_domains] * cv_weights).sum(axis=1)
-    elif weighting_method == 'variance':
-        # Variance-based weights: weight by domain variance (higher variance = more discriminative)
-        domain_variances = composite_scores[valid_domains].var()
-        variance_weights = domain_variances / domain_variances.sum()
-        
-        if verbose:
-            print(f"\n  ℹ  Using variance-based domain weights:")
-            for d in valid_domains:
-                print(f"      {d.replace(' Index', '')}: {variance_weights[d]:.3f} (var={domain_variances[d]:.3f})")
-        
-        # Weighted UCS = sum of (domain_score * weight)
-        composite_scores['UCS_raw'] = (composite_scores[valid_domains] * variance_weights).sum(axis=1)
+            print(f"\n  ℹ  Using weighted domain aggregation")
     else:
         # Equal weights (original method)
         composite_scores['UCS_raw'] = composite_scores[valid_domains].mean(axis=1)
-        if verbose:
-            print(f"\n  ℹ  Using equal domain weights")
     
     # Min-Max normalize to 0-100
     ucs_values = composite_scores['UCS_raw'].values.reshape(-1, 1)
@@ -358,15 +293,6 @@ def compute_composite_scores(
         print(f"\n{'='*55}")
         print(f"✓ UCS computed for {len(composite_scores)} counties")
         print(f"  Domains included: {valid_domains}")
-        # Show which weighting was used
-        if domain_weights:
-            print(f"  Weighting: Custom weights")
-        elif weighting_method in ['weighted_variance', 'cv']:
-            print(f"  Weighting: Weighted Variance (CV)")
-        elif weighting_method == 'variance':
-            print(f"  Weighting: Variance-based")
-        else:
-            print(f"  Weighting: Equal")
         print(f"  UCS range: {composite_scores['UCS'].min():.1f} – {composite_scores['UCS'].max():.1f}")
         print(f"  UCS mean: {composite_scores['UCS'].mean():.1f}, std: {composite_scores['UCS'].std():.1f}")
         print(f"\n  Top 5 underserved counties:")
@@ -384,85 +310,3 @@ def score_subdomain_legacy(df, indicators, polarity, name=''):
     Legacy version of score_subdomain - wraps new function for backward compatibility.
     """
     return score_subdomain(df, indicators, polarity, name, return_metadata=False)
-
-
-def compare_weighting_methods(
-    pivot_df: pd.DataFrame,
-    INDICATORS: dict,
-    DOMAIN_NAMES: list[str],
-    imputation_strategy: str = 'mean'
-) -> pd.DataFrame:
-    """
-    Compare UCS scores computed with different weighting methods.
-    
-    This is useful for sensitivity analysis and understanding how 
-    different weighting approaches affect the final scores.
-    
-    Parameters
-    ----------
-    pivot_df : pd.DataFrame
-        Input dataframe with county-level indicator data
-    INDICATORS : dict
-        Nested dict of {domain: {subdomain: {polarity, description, indicators}}}
-    DOMAIN_NAMES : list[str]
-        List of domain names to include in UCS
-    imputation_strategy : str, default 'mean'
-        Strategy for handling missing values
-    
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with UCS scores from each weighting method and their correlations
-    
-    Example
-    --------
-    >>> results = compare_weighting_methods(pivot_df, INDICATORS, DOMAIN_NAMES)
-    >>> print(results.corr())  # Correlation between methods
-    """
-    methods = ['weighted_variance', 'variance', 'equal']
-    results = {}
-    
-    print("Comparing weighting methods...")
-    print("=" * 50)
-    
-    for method in methods:
-        try:
-            composite_scores, _, _ = compute_composite_scores(
-                pivot_df,
-                INDICATORS,
-                DOMAIN_NAMES,
-                weighting_method=method,
-                imputation_strategy=imputation_strategy,
-                verbose=False
-            )
-            results[method] = composite_scores['UCS']
-            print(f"  ✓ {method}: UCS range [{composite_scores['UCS'].min():.1f}, {composite_scores['UCS'].max():.1f}]")
-        except Exception as e:
-            print(f"  ✗ {method}: {str(e)}")
-    
-    if not results:
-        raise ValueError("No weighting methods produced valid results")
-    
-    # Create comparison DataFrame
-    comparison_df = pd.DataFrame(results)
-    
-    # Calculate correlations
-    print("\n" + "=" * 50)
-    print("Correlation between methods:")
-    print(comparison_df.corr().round(3))
-    
-    # Calculate weight comparisons
-    print("\n" + "=" * 50)
-    print("Domain weight comparisons:")
-    
-    # Get weights for each method
-    _, _, _ = compute_composite_scores(
-        pivot_df,
-        INDICATORS,
-        DOMAIN_NAMES,
-        weighting_method='weighted_variance',
-        imputation_strategy=imputation_strategy,
-        verbose=True
-    )
-    
-    return comparison_df
