@@ -62,7 +62,7 @@ except ImportError:
 
 st.set_page_config(
     page_title="Kenya Health Equity Monitor",
-    page_icon="🇰🇪",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -71,22 +71,27 @@ st.set_page_config(
 # CONSTANTS
 # ─────────────────────────────────────────────────────────────
 
-# MoH Kenya official colour palette
+# Clean public-health dashboard palette inspired by the Kenya MoH COVID-19 dashboard
 COLORS = {
-    "green":  "#006633",   # MoH primary green
-    "gold":   "#CC9900",   # Government gold / amber
-    "red":    "#BB0000",   # Kenya flag red
-    "black":  "#1A1A1A",
-    "white":  "#FFFFFF",
-    "light":  "#F4F8F4",   # very light green tint
-    "mid":    "#E8F0E8",
-    "border": "#C8D8C8",
-    "orange": "#D4600A",   # moderate / alert
-    "teal":   "#007A6E",
-    "navy":   "#0D3D2B",   # dark green headers
-    "blue":   "#006633",   # alias for green (backward compat)
-    "purple": "#5C2D6B",
-    "amber":  "#CC9900",
+    "blue": "#2F80ED",
+    "blue_dark": "#1B4F9C",
+    "blue_light": "#EAF3FF",
+    "orange": "#F2994A",
+    "orange_dark": "#C75B12",
+    "red": "#D94A38",
+    "gray": "#4F4F4F",
+    "gray_light": "#F8FAFC",
+    "border": "#D9E2EC",
+    "black": "#222222",
+    "white": "#FFFFFF",
+    "purple": "#7E57C2",
+    "green": "#2E7D32",
+    "amber": "#F2994A",
+    "light": "#F8FAFC",
+    "mid": "#EEF3F8",
+    "teal": "#2D9CDB",
+    "navy": "#1B4F9C",
+    "gold": "#F2994A",
 }
 
 DOMAINS = [
@@ -97,10 +102,10 @@ DOMAINS = [
 ]
 
 DOMAIN_META = {
-    "Healthcare Access Index":        {"short": "Healthcare Access",  "color": "#d73027", "icon": "🏥"},
-    "Population Vulnerability Index": {"short": "Pop. Vulnerability", "color": "#2166ac", "icon": "👥"},
-    "Immunization Coverage Index":    {"short": "Immunization",       "color": "#1a9850", "icon": "💉"},
-    "Disease Burden Index":           {"short": "Disease Burden",     "color": "#7b2d8b", "icon": "🦠"},
+    "Healthcare Access Index":        {"short": "Healthcare Access",  "color": COLORS["orange"], "icon": ""},
+    "Population Vulnerability Index": {"short": "Pop. Vulnerability", "color": COLORS["blue"],   "icon": ""},
+    "Immunization Coverage Index":    {"short": "Immunization",       "color": COLORS["teal"],   "icon": ""},
+    "Disease Burden Index":           {"short": "Disease Burden",     "color": COLORS["red"],    "icon": ""},
 }
 
 DOMAIN_SHORT = {d: DOMAIN_META[d]["short"] for d in DOMAINS}
@@ -153,283 +158,249 @@ KENYA_COORDS = {
 
 st.markdown("""
 <style>
-/* ── FONTS ─────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
-    color: #1A1A1A;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: #222222;
+    background: #FFFFFF;
 }
 
-/* ── STREAMLIT CHROME HIDE ──────────────────────────── */
 #MainMenu, footer, header { visibility: hidden; }
 
-/* ── LAYOUT ─────────────────────────────────────────── */
 .block-container {
     padding-top: 0 !important;
-    padding-bottom: 0.4rem !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-bottom: 0.35rem !important;
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
     max-width: 100% !important;
 }
-section[data-testid="stSidebar"] {
-    min-width: 230px !important;
-    max-width: 240px !important;
-    background: #0D3D2B !important;
-    border-right: 3px solid #006633;
-}
-div[data-testid="stVerticalBlock"] > div { gap: 0.2rem !important; }
+
+div[data-testid="stVerticalBlock"] > div { gap: 0.22rem !important; }
 .element-container { margin-bottom: 0.12rem !important; }
 .stPlotlyChart { margin-bottom: 0 !important; }
-hr { margin: 0.35rem 0 !important; border-color: #C8D8C8 !important; }
+hr { margin: 0.35rem 0 !important; border-color: #D9E2EC !important; }
 
-/* ── GOVERNMENT HEADER BANNER ───────────────────────── */
-.gov-header {
-    background: linear-gradient(135deg, #0D3D2B 0%, #006633 60%, #007A6E 100%);
-    padding: 10px 20px 8px 20px;
-    margin: 0 0 0 0;
+/* Header similar to the attached MoH public dashboard */
+.moh-header {
+    background: #FFFFFF;
+    border-bottom: 2px solid #2F80ED;
+    padding: 7px 12px 5px 12px;
+    margin: 0 -0.65rem 0.25rem -0.65rem;
+}
+.moh-header-top {
     display: flex;
     align-items: center;
-    gap: 16px;
-    border-bottom: 4px solid #CC9900;
+    justify-content: space-between;
 }
-.gov-header .coat-of-arms {
-    font-size: 2rem;
-    line-height: 1;
+.logo-row {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    min-width: 145px;
 }
-.gov-header .header-text { flex: 1; }
-.gov-header .ministry-name {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #FFFFFF;
-    letter-spacing: 0.03em;
+.logo-box {
+    height: 28px;
+    min-width: 42px;
+    border: 1px solid #D9E2EC;
+    color: #2F80ED;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #F8FAFC;
+}
+.titles {
+    flex: 1;
+    text-align: center;
+}
+.ministry {
+    color: #2F80ED;
+    font-size: 1.52rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+.subtitle-line {
+    color: #2F80ED;
+    font-size: 0.82rem;
     line-height: 1.2;
 }
-.gov-header .ministry-sub {
-    font-size: 0.65rem;
-    color: #A8D4B4;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-top: 1px;
-}
-.gov-header .badge {
-    background: #CC9900;
-    color: #0D3D2B;
-    font-size: 0.6rem;
+.badge-gold {
+    color: #C75B12;
+    font-size: 0.74rem;
     font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 2px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    min-width: 145px;
+    text-align: right;
 }
 
-/* ── PAGE TITLES ────────────────────────────────────── */
+/* Compact top control strip */
+div[data-testid="stHorizontalBlock"]:has(.stButton) {
+    gap: 0.12rem !important;
+}
+
+/* Navigation buttons - compact, blue link style */
+.stButton button {
+    background: #FFFFFF !important;
+    color: #2F80ED !important;
+    border: 1px solid #D9E2EC !important;
+    border-radius: 0 !important;
+    font-size: 0.70rem !important;
+    font-weight: 600 !important;
+    padding: 0.30rem 0.25rem !important;
+    box-shadow: none !important;
+}
+.stButton button:hover {
+    background: #EAF3FF !important;
+    border-color: #2F80ED !important;
+    color: #1B4F9C !important;
+}
+.stButton button[kind="primary"] {
+    background: #EAF3FF !important;
+    border-color: #2F80ED !important;
+    color: #1B4F9C !important;
+    border-bottom: 3px solid #F2994A !important;
+}
+
+/* Page titles */
 .pg-title {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.15rem; font-weight: 600;
-    color: #0D3D2B; margin: 8px 20px 1px 20px;
-    border-left: 4px solid #CC9900;
-    padding-left: 10px; line-height: 1.25;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #2F80ED;
+    margin: 4px 0 0 0;
+    padding: 0;
+    line-height: 1.22;
 }
 .pg-sub {
-    font-size: 0.7rem; color: #4A6A4A;
-    margin: 0 20px 6px 34px;
-    letter-spacing: 0.02em;
+    font-size: 0.68rem;
+    color: #4F4F4F;
+    margin: 0 0 4px 0;
 }
 
-/* ── METRICS ────────────────────────────────────────── */
-div[data-testid="stMetricValue"] { font-size: 1.05rem !important; font-weight: 700 !important; color: #006633 !important; }
-div[data-testid="stMetricLabel"] { font-size: 0.6rem !important; color: #4A6A4A !important; text-transform: uppercase; letter-spacing: 0.04em; }
-div[data-testid="stMetricDelta"] { font-size: 0.62rem !important; }
-
-/* ── KPI CARDS ──────────────────────────────────────── */
+/* Compact KPI tiles */
 .kpi {
     background: #FFFFFF;
-    border-radius: 3px;
-    padding: 8px 12px;
-    border: 1px solid #C8D8C8;
-    border-top: 3px solid var(--kc, #006633);
+    border-radius: 0;
+    padding: 5px 7px;
+    border: 1px solid #D9E2EC;
+    border-top: 2px solid var(--kc, #2F80ED);
     text-align: center;
-    margin-bottom: 3px;
-    box-shadow: 0 1px 4px rgba(0,102,51,0.08);
+    margin-bottom: 2px;
+    box-shadow: none;
 }
 .kpi .v {
-    font-size: 1.3rem; font-weight: 700;
-    color: var(--kc, #006633); line-height: 1.1;
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #F2994A;
+    line-height: 1.05;
 }
 .kpi .l {
-    font-size: 0.58rem; color: #5A7A5A;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    margin-top: 2px;
+    font-size: 0.55rem;
+    color: #2F80ED;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    margin-top: 1px;
 }
 
-/* ── ALERT / INFO BOXES ─────────────────────────────── */
-.box-info {
-    background: #EFF7EF; border-left: 4px solid #006633;
-    padding: 8px 14px; border-radius: 0 4px 4px 0;
-    font-size: 0.79rem; color: #0D3D2B; margin: 5px 0;
-    line-height: 1.45;
+/* Streamlit metrics */
+div[data-testid="stMetricValue"] {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: #F2994A !important;
 }
-.box-warn {
-    background: #FFF8EC; border-left: 4px solid #CC9900;
-    padding: 8px 14px; border-radius: 0 4px 4px 0;
-    font-size: 0.78rem; color: #5A3A00; margin: 5px 0;
+div[data-testid="stMetricLabel"] {
+    font-size: 0.60rem !important;
+    color: #2F80ED !important;
 }
-.box-ok {
-    background: #EFF7EF; border-left: 4px solid #006633;
-    padding: 8px 14px; border-radius: 0 4px 4px 0;
-    font-size: 0.78rem; color: #0D3D2B; margin: 5px 0;
-}
-.box-err {
-    background: #FDEFEF; border-left: 4px solid #BB0000;
-    padding: 8px 14px; border-radius: 0 4px 4px 0;
-    font-size: 0.78rem; color: #5A0000; margin: 5px 0;
-}
+div[data-testid="stMetricDelta"] { font-size: 0.62rem !important; }
 
-/* ── SIDEBAR STYLING ────────────────────────────────── */
-section[data-testid="stSidebar"] * { color: #E8F4E8 !important; }
-section[data-testid="stSidebar"] .stRadio label { color: #E8F4E8 !important; font-size: 0.82rem !important; }
-section[data-testid="stSidebar"] .stRadio [data-baseweb="radio"] { margin-bottom: 2px !important; }
-section[data-testid="stSidebar"] .stSlider label { color: #A8D4B4 !important; font-size: 0.7rem !important; }
-section[data-testid="stSidebar"] hr { border-color: #1A6040 !important; margin: 6px 0 !important; }
-section[data-testid="stSidebar"] small,
-section[data-testid="stSidebar"] .stCaption { color: #88B498 !important; }
-
-.sb-logo {
-    text-align: center;
-    padding: 12px 8px 6px 8px;
-    border-bottom: 1px solid #1A6040;
-    margin-bottom: 6px;
+/* Panels / boxes */
+.box-info, .box-warn, .box-ok, .box-err {
+    background: #FFFFFF;
+    border: 1px solid #D9E2EC;
+    border-left: 4px solid #2F80ED;
+    padding: 7px 10px;
+    border-radius: 0;
+    font-size: 0.76rem;
+    color: #222222;
+    margin: 4px 0;
+    line-height: 1.35;
 }
-.sb-logo .flag { font-size: 1.6rem; }
-.sb-logo .title {
-    font-family: 'Source Serif 4', serif;
-    font-size: 0.8rem; font-weight: 600;
-    color: #FFFFFF !important; line-height: 1.3;
-    margin-top: 4px;
+.box-warn { border-left-color: #F2994A; background: #FFF8F0; }
+.box-ok { border-left-color: #2D9CDB; background: #F4FBFF; }
+.box-err { border-left-color: #D94A38; background: #FFF4F2; }
+
+/* Headings inside dashboard */
+h1, h2, h3, h4, h5, h6 {
+    color: #2F80ED !important;
 }
-.sb-logo .subtitle { font-size: 0.58rem; color: #88B498 !important; text-transform: uppercase; letter-spacing: 0.06em; }
-
-.sb-kpi { text-align: center; padding: 4px 0; }
-.sb-kpi .v { font-size: 1.05rem; font-weight: 700; color: #CC9900 !important; }
-.sb-kpi .l { font-size: 0.58rem; color: #88B498 !important; text-transform: uppercase; letter-spacing: 0.04em; }
-
-.sb-nav-label {
-    font-size: 0.58rem; text-transform: uppercase;
-    letter-spacing: 0.1em; color: #88B498 !important;
-    padding: 6px 0 2px 0; font-weight: 600;
+h5 {
+    font-size: 0.84rem !important;
+    margin: 0.2rem 0 0.15rem 0 !important;
 }
 
-/* ── DOMAIN BADGE ───────────────────────────────────── */
-.domain-pill {
-    display: inline-block; border-radius: 2px;
-    padding: 2px 8px; font-size: 0.68rem;
-    font-weight: 600; color: white; margin: 2px 2px;
+/* Forms */
+div[data-testid="stSelectbox"] label,
+div[data-testid="stSlider"] label,
+div[data-testid="stFileUploader"] label {
+    font-size: 0.70rem !important;
+    color: #4F4F4F !important;
 }
-
-/* ── DATA TABLES ────────────────────────────────────── */
-.stDataFrame { border: 1px solid #C8D8C8 !important; }
-.stDataFrame thead tr th {
-    background: #006633 !important;
-    color: white !important; font-size: 0.72rem !important;
-}
-
-/* ── STEP BADGE ─────────────────────────────────────── */
-.step-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: #006633; color: white;
-    font-size: 0.68rem; font-weight: 700; margin-right: 5px;
-}
-
-/* ── PREDICTION CARD ────────────────────────────────── */
-.pred-card {
-    border-radius: 4px; padding: 14px 18px; margin: 8px 0;
-    background: linear-gradient(135deg, #0D3D2B 0%, #006633 100%);
-    color: white; border-left: 5px solid #CC9900;
-}
-.pred-card .county-name { font-size: 1rem; font-weight: 700; font-family: 'Source Serif 4', serif; }
-.pred-card .ucs-big { font-size: 2.2rem; font-weight: 700; line-height: 1; color: #CC9900; }
-.pred-card .ucs-sub { font-size: 0.72rem; opacity: 0.8; }
-
-/* ── SECTION DIVIDERS ───────────────────────────────── */
-.section-label {
-    font-size: 0.65rem; text-transform: uppercase;
-    letter-spacing: 0.1em; color: #5A7A5A;
-    font-weight: 600; padding: 4px 0 2px 0;
-    border-bottom: 1px solid #C8D8C8;
-    margin-bottom: 6px;
-}
-
-/* ── CONTENT AREA PADDING ───────────────────────────── */
-.main-content { padding: 0 20px; }
-
-/* ── SELECTBOX ──────────────────────────────────────── */
-div[data-testid="stSelectbox"] label { font-size: 0.73rem !important; color: #4A6A4A !important; }
-div[data-testid="stSelectbox"] { margin-bottom: 4px !important; }
-
-/* ── PROGRESS BAR GREEN ─────────────────────────────── */
-.stProgress > div > div > div > div { background-color: #006633 !important; }
-.stProgress > div > div > div { height: 7px !important; background: #C8D8C8 !important; }
-
-/* ── BUTTONS ────────────────────────────────────────── */
-.stButton button {
-    background: #006633 !important; color: white !important;
-    border: none !important; border-radius: 3px !important;
-    font-size: 0.82rem !important; font-weight: 600 !important;
-    letter-spacing: 0.02em !important;
-}
-.stButton button:hover { background: #004D26 !important; }
-
-/* ── FILE UPLOADER ──────────────────────────────────── */
 [data-testid="stFileUploader"] {
-    border: 2px dashed #006633 !important;
-    border-radius: 4px !important;
-    background: #F4F8F4 !important;
-}
-
-small, .stCaption { font-size: 0.68rem !important; color: #5A7A5A !important; }
-
-/* ── NAV BUTTON TAB STRIP ───────────────────────────── */
-div[data-testid="stHorizontalBlock"]:first-of-type {
-    background: #006633 !important;
-    gap: 0 !important;
-    padding: 0 8px !important;
-    margin: 0 !important;
-    border-bottom: 3px solid #CC9900;
-}
-div[data-testid="stHorizontalBlock"]:first-of-type > div {
-    padding: 0 !important;
-    flex: 1 !important;
-}
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button {
+    border: 1px dashed #2F80ED !important;
     border-radius: 0 !important;
-    border: none !important;
-    border-bottom: 3px solid transparent !important;
-    margin-bottom: -3px !important;
-    background: transparent !important;
-    color: #A8D4B4 !important;
-    font-size: 0.68rem !important;
-    font-weight: 600 !important;
-    padding: 8px 2px !important;
-    letter-spacing: 0.05em !important;
-    text-transform: uppercase !important;
-    box-shadow: none !important;
-    width: 100% !important;
+    background: #F8FAFC !important;
 }
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,0.08) !important;
-    border-bottom-color: rgba(204,153,0,0.5) !important;
+
+/* Data tables */
+.stDataFrame { border: 1px solid #D9E2EC !important; }
+.stDataFrame thead tr th {
+    background: #EAF3FF !important;
+    color: #1B4F9C !important;
+    font-size: 0.70rem !important;
 }
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primaryFormSubmit"],
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primary"] {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,0.12) !important;
-    border-bottom: 3px solid #CC9900 !important;
+
+/* Progress bar */
+.stProgress > div > div > div > div { background-color: #F2994A !important; }
+.stProgress > div > div > div { height: 7px !important; background: #EAF3FF !important; }
+
+/* Small text */
+small, .stCaption {
+    font-size: 0.65rem !important;
+    color: #4F4F4F !important;
 }
-/* Remove sidebar entirely when using top nav */
+
+/* Step badge */
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 0;
+    background: #2F80ED;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-right: 5px;
+}
+
+/* Prediction card */
+.pred-card {
+    border-radius: 0;
+    padding: 12px 14px;
+    margin: 6px 0;
+    background: #EAF3FF;
+    color: #222222;
+    border-left: 5px solid #F2994A;
+}
+.pred-card .county-name { font-size: 1rem; font-weight: 700; }
+.pred-card .ucs-big { font-size: 2rem; font-weight: 800; line-height: 1; color: #F2994A; }
+.pred-card .ucs-sub { font-size: 0.72rem; color: #4F4F4F; }
+
+/* Hide sidebar: the design now uses top nav */
 section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -468,7 +439,7 @@ def kpi(val, label, color=COLORS["blue"]):
     st.markdown(f'<div class="kpi" style="--kc:{color}"><div class="v">{val}</div><div class="l">{label}</div></div>', unsafe_allow_html=True)
 
 def box(text, kind="info"):
-    icon = {"info":"💡","warn":"⚠️","ok":"✅","err":"❌"}.get(kind,"ℹ️")
+    icon = {"info":"","warn":"️","ok":"","err":""}.get(kind,"ℹ️")
     st.markdown(f'<div class="box-{kind}">{icon} {text}</div>', unsafe_allow_html=True)
 
 def ucs_color(score):
@@ -477,9 +448,9 @@ def ucs_color(score):
     return COLORS["green"]
 
 def ucs_label(score):
-    if score >= 70: return "🔴 Most Underserved"
-    if score >= 40: return "🟡 Moderate"
-    return "🟢 Well Served"
+    if score >= 70: return "Most Underserved"
+    if score >= 40: return "Moderate"
+    return "Well Served"
 
 def norm_val(val, series):
     mn, mx = series.min(), series.max()
@@ -613,12 +584,12 @@ def build_prediction_model(reference_df: pd.DataFrame):
 
 # ── TOP NAVIGATION BAR (replaces sidebar nav) ──────────────────────────────
 PAGES = [
-    ("📊", "Overview"),
-    ("🗺️", "Map"),
-    ("🔬", "PCA Analysis"),
-    ("🔍", "County Deep Dive"),
-    ("🤖", "ML & SHAP"),
-    ("📥", "KDHS Predictor"),
+    ("", "Overview"),
+    ("", "Map"),
+    ("", "PCA Analysis"),
+    ("", "County Deep Dive"),
+    ("", "ML & SHAP"),
+    ("", "KDHS Predictor"),
 ]
 
 # Initialise page state
@@ -626,26 +597,31 @@ if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
 # ── MOH HEADER ───────────────────────────────────────────────────────────────
-st.markdown('''
+st.markdown("""
 <div class="moh-header">
   <div class="moh-header-top">
-    <span class="coat">🇰🇪</span>
-    <div class="titles">
-      <div class="ministry">Ministry of Health — Republic of Kenya</div>
-      <div class="subtitle-line">Kenya Health Equity Monitor · Underserved County Score (UCS)</div>
+    <div class="logo-row">
+      <span class="logo-box">WHO</span>
+      <span class="logo-box">CDC</span>
+      <span class="logo-box">MOH</span>
     </div>
-    <span class="badge-gold">KDHS 2020 / 2022</span>
+    <div class="titles">
+      <div class="ministry">MINISTRY OF HEALTH - REPUBLIC OF KENYA</div>
+      <div class="subtitle-line">Kenya Health Equity Monitor</div>
+    </div>
+    <div class="badge-gold">KDHS 2020 / 2022</div>
   </div>
-</div>''', unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
 # ── STREAMLIT NATIVE TAB BAR ─────────────────────────────────────────────────
 # Use st.columns as clickable tab buttons — works without JS
-_tab_labels = [f"{icon} {label}" for icon, label in PAGES]
+_tab_labels = [label for icon, label in PAGES]
 _tab_cols = st.columns(len(PAGES))
 for i, (col, (icon, label)) in enumerate(zip(_tab_cols, PAGES)):
     with col:
         _btn_style = "primary" if st.session_state.page == label else "secondary"
-        if st.button(f"{icon} {label}", key=f"nav_{label}",
+        if st.button(label, key=f"nav_{label}",
                      type=_btn_style, use_container_width=True):
             st.session_state.page = label
             st.rerun()
@@ -696,7 +672,7 @@ if page == "Overview":
 
     fdf = df[(df["UCS"] >= ucs_range[0]) & (df["UCS"] <= ucs_range[1])]
 
-    st.markdown('<p class="pg-title">🏥 Kenya Healthcare Access Inequality Dashboard</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title"> Kenya Healthcare Access Inequality Dashboard</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Underserved County Score (UCS) · KDHS 2020 & 2022 · 47 Counties · Higher = More Underserved</p>', unsafe_allow_html=True)
 
     k1,k2,k3,k4,k5 = st.columns(5)
@@ -714,7 +690,7 @@ if page == "Overview":
     with left:
         b1, b2 = st.columns(2)
         with b1:
-            st.markdown("##### 🔴 Top 10 Underserved")
+            st.markdown("#####  Top 10 Underserved")
             top10 = fdf["UCS"].sort_values(ascending=False).head(10).reset_index()
             top10.columns = ["County","UCS"]
             fig = px.bar(top10, x="UCS", y="County", orientation="h",
@@ -728,7 +704,7 @@ if page == "Overview":
             st.plotly_chart(fig, use_container_width=True)
 
         with b2:
-            st.markdown("##### 🟢 Top 10 Best Served")
+            st.markdown("#####  Top 10 Best Served")
             bot10 = fdf["UCS"].sort_values().head(10).reset_index()
             bot10.columns = ["County","UCS"]
             fig2 = px.bar(bot10, x="UCS", y="County", orientation="h",
@@ -741,7 +717,7 @@ if page == "Overview":
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig2, use_container_width=True)
 
-        st.markdown("##### 📊 Domain Score Distributions")
+        st.markdown("#####  Domain Score Distributions")
         avail_domains = [d for d in DOMAINS if d in fdf.columns]
         if avail_domains:
             dmelt = fdf[avail_domains].copy()
@@ -757,38 +733,19 @@ if page == "Overview":
             st.plotly_chart(fig_box, use_container_width=True)
 
     with right:
-        st.markdown("##### County Distribution")
-
-        high = len(fdf[fdf["UCS"] >= 70])
-        moderate = len(fdf[(fdf["UCS"] >= 40) & (fdf["UCS"] < 70)])
-        low = len(fdf[fdf["UCS"] < 40])
-
+        st.markdown("#####  Domain Architecture (CV Weighted)")
         fig_d = go.Figure(go.Pie(
-            labels=["High Risk", "Moderate", "Low Risk"],
-            values=[high, moderate, low],
-            hole=0.60,
-            marker_colors=["#D94A38", "#F2994A", "#2F80ED"],
-            textinfo="label+percent",
-            textfont_size=10
+            labels=[f"{DOMAIN_META[d]["short"]}" for d in DOMAINS],
+            values=[25,25,25,25], hole=0.58,
+            marker_colors=[DOMAIN_META[d]["color"] for d in DOMAINS],
+            textinfo="label", textfont_size=9
         ))
-
-        fig_d.update_layout(
-            height=180,
-            margin=dict(l=5, r=5, t=5, b=5),
-            showlegend=False,
-            paper_bgcolor="rgba(0,0,0,0)",
-            annotations=[dict(
-                text=f"{len(fdf)}<br>Counties",
-                x=0.5,
-                y=0.5,
-                showarrow=False,
-                font_size=12
-            )]
-        )
-
+        fig_d.update_layout(height=160, margin=dict(l=10,r=10,t=5,b=5), showlegend=False,
+            annotations=[dict(text="4 Domains<br>CV Weight", x=0.5, y=0.5, font_size=9, showarrow=False)],
+            paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_d, use_container_width=True)
 
-        st.markdown("##### 🗺️ UCS Map")
+        st.markdown("##### ️ UCS Map")
         mf = st.selectbox("Filter", ["All","High (≥70)","Moderate (40–70)","Well Served (<40)"], key="ov_mf", label_visibility="collapsed")
         mdf = fdf.copy()
         if mf == "High (≥70)":        mdf = mdf[mdf["UCS"] >= 70]
@@ -798,7 +755,7 @@ if page == "Overview":
         if FOLIUM_OK and "lat" in mdf.columns:
             m = build_folium_map(mdf, height=310)
             st_html(m._repr_html_(), height=310, scrolling=False)
-            st.caption("🔴 ≥70 · 🟠 40–70 · 🟢 <40 · Click markers for detail")
+            st.caption(" ≥70 ·  40–70 ·  <40 · Click markers for detail")
         else:
             fig_sc = px.scatter(mdf.reset_index(), x="lon", y="lat", color="UCS",
                 size="UCS", hover_name="index", color_continuous_scale="RdYlGn_r",
@@ -818,7 +775,7 @@ elif page == "Map":
     if df is None:
         st.error("Data not found."); st.stop()
 
-    st.markdown('<p class="pg-title">🗺️ Interactive Map</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">️ Interactive Map</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Geographic distribution of healthcare underservice across all 47 counties</p>', unsafe_allow_html=True)
 
     c1,c2 = st.columns([2,1])
@@ -847,7 +804,7 @@ elif page == "Map":
                 if d in row:
                     popup += f"• {DOMAIN_META[d]['short']}: {row[d]:.3f}<br>"
             if "Anomaly" in row and row["Anomaly"] == "Anomaly":
-                popup += "<br>⚠️ <b>Anomaly flagged</b>"
+                popup += "<br>️ <b>Anomaly flagged</b>"
             popup += "</div>"
             is_anom = show_labels and "Anomaly" in row and row["Anomaly"] == "Anomaly"
             if is_anom:
@@ -855,7 +812,7 @@ elif page == "Map":
                     location=[lat, lon],
                     popup=folium.Popup(popup, max_width=230),
                     icon=folium.Icon(color="red", icon="warning-sign", prefix="glyphicon"),
-                    tooltip=f"⚠️ {county}"
+                    tooltip=f"️ {county}"
                 ).add_to(m)
             else:
                 folium.CircleMarker(
@@ -874,10 +831,10 @@ elif page == "Map":
 
     st.markdown("| | UCS Range | Status |")
     st.markdown("|---|---|---|")
-    st.markdown("| 🔴 | ≥70 | Critical underservice |")
-    st.markdown("| 🟠 | 50–70 | High underservice |")
-    st.markdown("| 🟡 | 30–50 | Moderate |")
-    st.markdown("| 🟢 | <30 | Relatively well served |")
+    st.markdown("|  | ≥70 | Critical underservice |")
+    st.markdown("|  | 50–70 | High underservice |")
+    st.markdown("|  | 30–50 | Moderate |")
+    st.markdown("|  | <30 | Relatively well served |")
 
 # ─────────────────────────────────────────────────────────────
 # PAGE: PCA ANALYSIS
@@ -887,7 +844,7 @@ elif page == "PCA Analysis":
     if df is None: st.error("Data not found."); st.stop()
     if not SKLEARN_OK: st.warning("scikit-learn required for PCA."); st.stop()
 
-    st.markdown('<p class="pg-title">🔬 Principal Component Analysis</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title"> Principal Component Analysis</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Dimensionality reduction to understand feature composition and county clustering</p>', unsafe_allow_html=True)
 
     avail = [d for d in DOMAINS if d in df.columns]
@@ -971,7 +928,7 @@ elif page == "PCA Analysis":
 elif page == "County Deep Dive":
     if df is None: st.error("Data not found."); st.stop()
 
-    st.markdown('<p class="pg-title">🔍 County Deep Dive</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title"> County Deep Dive</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Domain profiles, percentile ranks, SHAP drivers and multi-county comparison</p>', unsafe_allow_html=True)
 
     fdf = df[(df["UCS"] >= ucs_range[0]) & (df["UCS"] <= ucs_range[1])]
@@ -992,7 +949,7 @@ elif page == "County Deep Dive":
         st.metric("Cluster", cl[:20]+"…" if len(cl)>20 else cl)
     with m3:
         an = cdata.get("Anomaly","Normal")
-        st.metric("Anomaly", "⚠️ Yes" if an=="Anomaly" else "✅ No")
+        st.metric("Anomaly", "️ Yes" if an=="Anomaly" else " No")
     with m4:
         ap = cdata.get("Anomaly_prob",0)*100
         st.metric("Anomaly Prob", f"{ap:.1f}%")
@@ -1006,11 +963,11 @@ elif page == "County Deep Dive":
 
     with rad_c:
         if mode == "Single":
-            st.markdown(f"##### 🕸️ {selected}")
+            st.markdown(f"##### ️ {selected}")
             vals = {DOMAIN_META[d]["short"]: norm_val(cdata[d], df[d]) for d in avail_domains}
             st.plotly_chart(radar_chart(vals, selected, 250), use_container_width=True)
         else:
-            st.markdown("##### 🕸️ Comparison")
+            st.markdown("##### ️ Comparison")
             comp = [selected]
             rem = [c for c in county_list if c != selected]
             c2 = st.selectbox("2nd County", rem, key="c2")
@@ -1035,10 +992,10 @@ elif page == "County Deep Dive":
             st.plotly_chart(fig_r, use_container_width=True)
 
     with dom_c:
-        st.markdown("##### 📈 Domain Scores")
+        st.markdown("#####  Domain Scores")
         for d in avail_domains:
             n = norm_val(cdata[d], df[d])
-            st.markdown(f"<span style='font-size:.78rem;font-weight:600'>{DOMAIN_META[d]['icon']} {DOMAIN_META[d]['short']}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-size:.78rem;font-weight:600'>{DOMAIN_META[d]["short"]}</span>", unsafe_allow_html=True)
             st.progress(n/100, text=f"{n:.0f}%")
         st.markdown("<span style='font-size:.72rem;font-weight:600;color:#555'>Percentile vs 47 counties</span>", unsafe_allow_html=True)
         pct_rows = []
@@ -1048,7 +1005,7 @@ elif page == "County Deep Dive":
         st.dataframe(pd.DataFrame(pct_rows).set_index("Domain"), height=130, use_container_width=True)
 
     with sh_c:
-        st.markdown("##### 🔬 SHAP Drivers")
+        st.markdown("#####  SHAP Drivers")
         if shap_df is not None:
             rdf = shap_df[shap_df.index==selected] if "County" not in shap_df.columns else shap_df[shap_df["County"]==selected]
             if len(rdf) > 0:
@@ -1071,7 +1028,7 @@ elif page == "County Deep Dive":
 
     if mode != "Single":
         st.markdown("---")
-        st.markdown("##### 📋 Comparison Table")
+        st.markdown("#####  Comparison Table")
         rows = []
         for cn in comp:
             if cn in df.index:
@@ -1087,7 +1044,7 @@ elif page == "County Deep Dive":
 elif page == "ML & SHAP":
     if df is None: st.error("Data not found."); st.stop()
 
-    st.markdown('<p class="pg-title">🤖 ML & SHAP — Model Insights</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title"> ML & SHAP — Model Insights</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">XGBoost · Feature importance · Anomaly detection · County SHAP drill-down · Policy implications</p>', unsafe_allow_html=True)
 
     MODEL_METRICS = {
@@ -1107,7 +1064,7 @@ elif page == "ML & SHAP":
     box(f"**{sel_model}** achieves {mm['accuracy']:.1f}% accuracy classifying critically underserved counties (UCS ≥ 70). XGBoost leads; its SHAP values are used for all policy guidance below.", "info")
     st.markdown("---")
 
-    st.markdown("##### 📊 SHAP Explorer")
+    st.markdown("#####  SHAP Explorer")
     if shap_df is None:
         box("shap_values.csv not found. Run the UCS notebook first.", "warn")
     else:
@@ -1187,13 +1144,13 @@ elif page == "ML & SHAP":
     ac, pc = st.columns([1.2,1])
 
     with ac:
-        st.markdown("##### ⚠️ Anomaly Detection")
+        st.markdown("##### ️ Anomaly Detection")
         if "Anomaly" in df.columns:
             adf = df.copy()
-            adf["Status"] = adf["Anomaly"].map(lambda x: "⚠️ Anomaly" if x=="Anomaly" else "Normal")
+            adf["Status"] = adf["Anomaly"].map(lambda x: "️ Anomaly" if x=="Anomaly" else "Normal")
             avail_x = DOMAINS[0] if DOMAINS[0] in adf.columns else adf.select_dtypes("number").columns[0]
             fig_a = px.scatter(adf, x="UCS", y=avail_x, color="Status",
-                color_discrete_map={"⚠️ Anomaly": COLORS["red"], "Normal": COLORS["blue"]},
+                color_discrete_map={"️ Anomaly": COLORS["red"], "Normal": COLORS["blue"]},
                 hover_name=adf.index)
             fig_a.update_layout(height=210, margin=dict(l=5,r=5,t=20,b=5),
                 legend=dict(font_size=9),
@@ -1204,7 +1161,7 @@ elif page == "ML & SHAP":
             else: box("No significant anomalies detected.", "ok")
 
     with pc:
-        st.markdown("##### 📈 UCS Distribution")
+        st.markdown("#####  UCS Distribution")
         n_h = len(df[df["UCS"]>=70]); n_m = len(df[(df["UCS"]>=40)&(df["UCS"]<70)]); n_l = len(df[df["UCS"]<40])
         fig_p = px.pie(
             pd.DataFrame({"Cat":["High (≥70)","Moderate","Well Served (<40)"],"N":[n_h,n_m,n_l]}),
@@ -1223,7 +1180,7 @@ elif page == "ML & SHAP":
 
 elif page == "KDHS Predictor":
 
-    st.markdown('<p class="pg-title">📥 KDHS Raw Data Predictor</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title"> KDHS Raw Data Predictor</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Upload a raw KDHS CSV → auto-map columns to domains → compute domain scores → predict UCS for each county</p>', unsafe_allow_html=True)
 
     # ── Step indicator ──────────────────────────────────────
@@ -1344,7 +1301,7 @@ elif page == "KDHS Predictor":
                 color = DOMAIN_META[domain]["color"]
                 st.markdown(f"""<div class="kpi" style="--kc:{color}">
                     <div class="v">{n}</div>
-                    <div class="l">{DOMAIN_META[domain]['icon']} {DOMAIN_META[domain]['short']}</div>
+                    <div class="l">{DOMAIN_META[domain]["short"]}</div>
                 </div>""", unsafe_allow_html=True)
 
         if unmapped:
@@ -1354,7 +1311,7 @@ elif page == "KDHS Predictor":
         # Manual override UI
         _user_mapping = {d: [] for d in DOMAINS}
         _mapping_edited = False
-        with st.expander(f"📋 Edit column assignments ({len(raw_df.columns)} columns)", expanded=False):
+        with st.expander(f" Edit column assignments ({len(raw_df.columns)} columns)", expanded=False):
             _mapping_edited = True
             domain_options = ["Exclude"] + DOMAINS
             e1, e2, e3 = st.columns(3)
@@ -1384,7 +1341,7 @@ elif page == "KDHS Predictor":
             missing = [DOMAIN_META[d]["short"] for d in DOMAINS if not final_mapping[d]]
             box(f"Missing columns for: **{', '.join(missing)}**. Assign at least one column per domain to proceed.", "warn")
         else:
-            if st.button("⚙️ Compute Domain Scores & Predict UCS", type="primary"):
+            if st.button("️ Compute Domain Scores & Predict UCS", type="primary"):
                 with st.spinner("Computing domain scores using PCA weighting…"):
                     try:
                         domain_scores = pd.DataFrame(index=raw_df.index)
@@ -1447,7 +1404,7 @@ elif page == "KDHS Predictor":
 
             with res_left:
                 # Top/bottom bar charts
-                st.markdown("##### 🔴 Most Underserved")
+                st.markdown("#####  Most Underserved")
                 top_r = results["UCS"].sort_values(ascending=False).head(10).reset_index()
                 top_r.columns = ["County","UCS"]
                 fig_tr = px.bar(top_r, x="UCS", y="County", orientation="h",
@@ -1460,14 +1417,14 @@ elif page == "KDHS Predictor":
                 st.plotly_chart(fig_tr, use_container_width=True)
 
                 # Domain breakdown for worst county
-                st.markdown(f"##### 🕸️ Profile: {worst_p}")
+                st.markdown(f"##### ️ Profile: {worst_p}")
                 worst_row = results.loc[worst_p]
                 vals_w = {DOMAIN_META[d]["short"]: float(worst_row.get(d, 0)) for d in DOMAINS}
                 st.plotly_chart(radar_chart(vals_w, worst_p, 220), use_container_width=True)
 
             with res_right:
                 # Full ranked table
-                st.markdown("##### 📋 Full Rankings")
+                st.markdown("#####  Full Rankings")
                 display_cols = ["UCS","Rank"] + \
                     ([c for c in ["Cluster","Anomaly"] if c in results.columns])
                 show_df = results[display_cols].sort_values("UCS", ascending=False)
@@ -1476,7 +1433,7 @@ elif page == "KDHS Predictor":
                 st.dataframe(show_df, use_container_width=True, height=380)
 
                 # Domain scores heatmap
-                st.markdown("##### 🌡️ Domain Score Heatmap")
+                st.markdown("##### ️ Domain Score Heatmap")
                 heat_df = results[DOMAINS].round(1)
                 heat_df.columns = [DOMAIN_META[d]["short"] for d in DOMAINS]
                 fig_h = px.imshow(heat_df.sort_values(by=list(heat_df.columns), ascending=False).head(20),
@@ -1503,7 +1460,7 @@ elif page == "KDHS Predictor":
             # Comparison with reference data
             if df is not None:
                 st.markdown("---")
-                st.markdown("##### 📊 Comparison with Reference UCS (KDHS 2020/2022)")
+                st.markdown("#####  Comparison with Reference UCS (KDHS 2020/2022)")
                 common = list(set(results.index) & set(df.index))
                 if len(common) >= 3:
                     comp_df = pd.DataFrame({
