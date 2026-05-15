@@ -1,5 +1,5 @@
 """
-Kenya Health Equity Monitor — Thesis-Accurate Defence Dashboard
+Kenya Health Equity Monitor - Thesis-Accurate Defence Dashboard
 ================================================================
 Author: Cynthia Ngugi | Registration Number: 138725
 Dissertation: Integrating Machine Learning and Spatial Analytics to Identify and Explain Healthcare Access Inequalities in Kenya
@@ -619,7 +619,7 @@ if page == "Overview":
 
     with right:
         panel_open(COLORS["gold"])
-        panel_title("Defence message")
+        panel_title("Insights)
         finding("<b>Core result:</b> k = 2 is optimal; it validates an ASAL versus non-ASAL policy distinction.", COLORS["orange"])
         finding("<b>Cluster 1:</b> 8 structurally underserved ASAL/remote counties.", COLORS["red"])
         finding("<b>Cluster 2:</b> 39 moderately served counties with internal variation.", COLORS["blue"])
