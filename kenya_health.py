@@ -1,8 +1,8 @@
 """
-kenya_health.py — Kenya Health Gap Dashboard v2
+kenya_health.py - Kenya Health Gap Dashboard v2
 ================================================
 Improvements over v1:
-  • New page: KDHS Raw Data Ingestor — upload raw DHS CSV, auto-map columns,
+  • New page: KDHS Raw Data Ingestor - upload raw DHS CSV, auto-map columns,
     compute domain scores, and predict UCS without any pre-processing step.
   • Prediction engine uses a pipeline trained on the existing county_ucs_final.csv
     data so it works even without model .pkl files.
@@ -62,7 +62,7 @@ except ImportError:
 
 st.set_page_config(
     page_title="Kenya Health Equity Monitor",
-    page_icon=None,
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -71,27 +71,27 @@ st.set_page_config(
 # CONSTANTS
 # ─────────────────────────────────────────────────────────────
 
-# Clean public-health dashboard palette inspired by the Kenya MoH COVID-19 dashboard
+# Palette from pasted .py - blue primary, clean MoH public-health style
 COLORS = {
-    "blue": "#2F80ED",
-    "blue_dark": "#1B4F9C",
-    "blue_light": "#EAF3FF",
-    "orange": "#F2994A",
-    "orange_dark": "#C75B12",
-    "red": "#D94A38",
-    "gray": "#4F4F4F",
-    "gray_light": "#F8FAFC",
-    "border": "#D9E2EC",
-    "black": "#222222",
-    "white": "#FFFFFF",
-    "purple": "#7E57C2",
-    "green": "#2E7D32",
-    "amber": "#F2994A",
-    "light": "#F8FAFC",
-    "mid": "#EEF3F8",
-    "teal": "#2D9CDB",
-    "navy": "#1B4F9C",
-    "gold": "#F2994A",
+    "blue":         "#2F80ED",   # primary blue
+    "blue_dark":    "#1B4F9C",   # dark blue (headings, active nav)
+    "blue_light":   "#EAF3FF",   # very light blue (hover, bg tint)
+    "orange":       "#F2994A",   # accent / KPI values
+    "orange_dark":  "#C75B12",   # critical / Cluster 1
+    "red":          "#D94A38",   # alert
+    "gray":         "#4F4F4F",   # body text
+    "gray_light":   "#F8FAFC",   # page background
+    "border":       "#D9E2EC",   # borders
+    "black":        "#222222",   # headings
+    "white":        "#FFFFFF",
+    "purple":       "#7E57C2",
+    "green":        "#2E7D32",
+    "amber":        "#F2994A",
+    "light":        "#F8FAFC",
+    "mid":          "#EEF3F8",
+    "teal":         "#2D9CDB",
+    "navy":         "#1B4F9C",
+    "gold":         "#F2994A",
 }
 
 DOMAINS = [
@@ -102,29 +102,13 @@ DOMAINS = [
 ]
 
 DOMAIN_META = {
-    "Healthcare Access Index":        {"short": "Healthcare Access",  "color": COLORS["orange"], "icon": ""},
-    "Population Vulnerability Index": {"short": "Pop. Vulnerability", "color": COLORS["blue"],   "icon": ""},
-    "Immunization Coverage Index":    {"short": "Immunization",       "color": COLORS["teal"],   "icon": ""},
-    "Disease Burden Index":           {"short": "Disease Burden",     "color": COLORS["red"],    "icon": ""},
+    "Healthcare Access Index":        {"short": "Healthcare Access",  "color": "#C8690A", "icon": ""},
+    "Population Vulnerability Index": {"short": "Pop. Vulnerability", "color": "#1A1A2E", "icon": ""},
+    "Immunization Coverage Index":    {"short": "Immunization",       "color": "#2B7A3F", "icon": ""},
+    "Disease Burden Index":           {"short": "Disease Burden",     "color": "#6D28D9", "icon": ""},
 }
 
 DOMAIN_SHORT = {d: DOMAIN_META[d]["short"] for d in DOMAINS}
-
-# Dissertation-aligned headline findings
-# Source: thesis write-up and UCS notebook outputs.
-CLUSTER_FINDINGS = {
-    "optimal_k": 2,
-    "silhouette": 0.4595,
-    "davies_bouldin": 0.612,
-    "calinski_harabasz": 41.3,
-    "xgboost_auc": 0.84,
-    "pca_avg_pc1_variance": 75.1,
-    "cluster_1_label": "Cluster 1: Structurally Underserved",
-    "cluster_2_label": "Cluster 2: Moderately Served",
-    "top_5_underserved": ["Wajir", "Turkana", "Tana River", "Marsabit", "Samburu"],
-    "anomaly_count": 5,
-}
-
 
 # KDHS column families → domain mapping
 # Keys are partial strings that might appear in raw DHS column headers
@@ -197,7 +181,7 @@ div[data-testid="stVerticalBlock"] > div { gap: 0.22rem !important; }
 .stPlotlyChart { margin-bottom: 0 !important; }
 hr { margin: 0.35rem 0 !important; border-color: #D9E2EC !important; }
 
-/* Header similar to the attached MoH public dashboard */
+/* Header - white with blue bottom border, matching MoH COVID dashboard */
 .moh-header {
     background: #FFFFFF;
     border-bottom: 2px solid #2F80ED;
@@ -252,12 +236,7 @@ hr { margin: 0.35rem 0 !important; border-color: #D9E2EC !important; }
     text-align: right;
 }
 
-/* Compact top control strip */
-div[data-testid="stHorizontalBlock"]:has(.stButton) {
-    gap: 0.12rem !important;
-}
-
-/* Navigation buttons - compact, blue link style */
+/* Navigation buttons - compact blue tab style */
 .stButton button {
     background: #FFFFFF !important;
     color: #2F80ED !important;
@@ -280,6 +259,19 @@ div[data-testid="stHorizontalBlock"]:has(.stButton) {
     border-bottom: 3px solid #F2994A !important;
 }
 
+/* Nav row container */
+div[data-testid="stHorizontalBlock"]:first-of-type {
+    background: #FFFFFF !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 4px 0 !important;
+    border-bottom: 2px solid #D9E2EC;
+}
+div[data-testid="stHorizontalBlock"]:first-of-type > div {
+    padding: 0 !important;
+    flex: 1 !important;
+}
+
 /* Page titles */
 .pg-title {
     font-size: 1.02rem;
@@ -295,7 +287,7 @@ div[data-testid="stHorizontalBlock"]:has(.stButton) {
     margin: 0 0 4px 0;
 }
 
-/* Compact KPI tiles */
+/* KPI tiles */
 .kpi {
     background: #FFFFFF;
     border-radius: 0;
@@ -332,7 +324,7 @@ div[data-testid="stMetricLabel"] {
 }
 div[data-testid="stMetricDelta"] { font-size: 0.62rem !important; }
 
-/* Panels / boxes */
+/* Alert boxes */
 .box-info, .box-warn, .box-ok, .box-err {
     background: #FFFFFF;
     border: 1px solid #D9E2EC;
@@ -345,17 +337,12 @@ div[data-testid="stMetricDelta"] { font-size: 0.62rem !important; }
     line-height: 1.35;
 }
 .box-warn { border-left-color: #F2994A; background: #FFF8F0; }
-.box-ok { border-left-color: #2D9CDB; background: #F4FBFF; }
-.box-err { border-left-color: #D94A38; background: #FFF4F2; }
+.box-ok   { border-left-color: #2D9CDB; background: #F4FBFF; }
+.box-err  { border-left-color: #D94A38; background: #FFF4F2; }
 
-/* Headings inside dashboard */
-h1, h2, h3, h4, h5, h6 {
-    color: #2F80ED !important;
-}
-h5 {
-    font-size: 0.84rem !important;
-    margin: 0.2rem 0 0.15rem 0 !important;
-}
+/* Section headings */
+h1, h2, h3, h4, h5, h6 { color: #2F80ED !important; }
+h5 { font-size: 0.84rem !important; margin: 0.2rem 0 0.15rem 0 !important; }
 
 /* Forms */
 div[data-testid="stSelectbox"] label,
@@ -382,19 +369,12 @@ div[data-testid="stFileUploader"] label {
 .stProgress > div > div > div > div { background-color: #F2994A !important; }
 .stProgress > div > div > div { height: 7px !important; background: #EAF3FF !important; }
 
-/* Small text */
-small, .stCaption {
-    font-size: 0.65rem !important;
-    color: #4F4F4F !important;
-}
-
 /* Step badge */
 .step-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 18px; height: 18px;
     border-radius: 0;
     background: #2F80ED;
     color: white;
@@ -416,7 +396,12 @@ small, .stCaption {
 .pred-card .ucs-big { font-size: 2rem; font-weight: 800; line-height: 1; color: #F2994A; }
 .pred-card .ucs-sub { font-size: 0.72rem; color: #4F4F4F; }
 
-/* Hide sidebar: the design now uses top nav */
+small, .stCaption {
+    font-size: 0.65rem !important;
+    color: #4F4F4F !important;
+}
+
+/* Hide sidebar */
 section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -451,12 +436,13 @@ shap_df = load_shap_data()
 # HELPERS
 # ─────────────────────────────────────────────────────────────
 
-def kpi(val, label, color=COLORS["blue"]):
+def kpi(val, label, color=COLORS["navy"]):
     st.markdown(f'<div class="kpi" style="--kc:{color}"><div class="v">{val}</div><div class="l">{label}</div></div>', unsafe_allow_html=True)
 
 def box(text, kind="info"):
-    icon = {"info":"","warn":"️","ok":"","err":""}.get(kind,"ℹ️")
-    st.markdown(f'<div class="box-{kind}">{icon} {text}</div>', unsafe_allow_html=True)
+    prefix = {"info":"Note","warn":"Note","ok":"","err":"Error"}.get(kind,"")
+    leader = f"<b>{prefix}:</b> " if prefix else ""
+    st.markdown(f'<div class="box-{kind}">{leader}{text}</div>', unsafe_allow_html=True)
 
 def ucs_color(score):
     if score >= 70: return COLORS["red"]
@@ -477,8 +463,8 @@ def radar_chart(values_dict, county_name, height=240):
     vals = list(values_dict.values()); vals.append(vals[0])
     fig = go.Figure(go.Scatterpolar(
         r=vals, theta=cats, fill="toself",
-        fillcolor="rgba(33,102,172,0.2)",
-        line=dict(color=COLORS["blue"], width=2),
+        fillcolor="rgba(200,105,10,0.15)",
+        line=dict(color=COLORS["navy"], width=2),
         hovertemplate="%{theta}: %{r:.1f}<extra></extra>"
     ))
     fig.update_layout(
@@ -494,7 +480,7 @@ def build_folium_map(data, height=380):
         if pd.isna(lat) or pd.isna(lon): continue
         ucs_v = row.get("UCS", 0)
         col = "red" if ucs_v >= 70 else "orange" if ucs_v >= 40 else "green"
-        popup = f"<b>{county}</b><br>UCS: {ucs_v:.1f} — {ucs_label(ucs_v)}<hr>"
+        popup = f"<b>{county}</b><br>UCS: {ucs_v:.1f} - {ucs_label(ucs_v)}<hr>"
         for d in DOMAINS:
             if d in row:
                 popup += f"{DOMAIN_META[d]['short']}: {row[d]:.3f}<br>"
@@ -539,7 +525,7 @@ def compute_domain_score(raw_df: pd.DataFrame, cols: list[str], domain: str) -> 
     sub = sub.fillna(sub.median())
 
     # Polarity fix: if column means suggest "higher = better", flip
-    # (e.g. immunization coverage — higher value means LOWER burden → invert)
+    # (e.g. immunization coverage - higher value means LOWER burden → invert)
     good_keywords = ["immuniz","vaccine","bcg","dpt","polio","measles","vitamin","insur","skilled","antenatal"]
     for c in cols:
         if any(kw in c.lower() for kw in good_keywords):
@@ -613,25 +599,21 @@ if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
 # ── MOH HEADER ───────────────────────────────────────────────────────────────
-st.markdown("""
+st.markdown('''
 <div class="moh-header">
   <div class="moh-header-top">
-    <div class="logo-row">
-      <span class="logo-box">WHO</span>
-      <span class="logo-box">CDC</span>
-      <span class="logo-box">MOH</span>
-    </div>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Coat_of_arms_of_Kenya.svg/60px-Coat_of_arms_of_Kenya.svg.png"
+         class="coat" alt="Kenya Coat of Arms">
     <div class="titles">
-      <div class="ministry">MINISTRY OF HEALTH - REPUBLIC OF KENYA</div>
-      <div class="subtitle-line">Kenya Health Equity Monitor</div>
+      <div class="ministry">Ministry of Health - Republic of Kenya</div>
+      <div class="subtitle-line">Kenya Health Equity Monitor &nbsp;·&nbsp; Underserved County Score (UCS) &nbsp;·&nbsp; 47 Counties</div>
     </div>
-    <div class="badge-gold">KDHS 2020 / 2022</div>
+    <span class="badge-gold">KDHS 2020 / 2022</span>
   </div>
-</div>
-""", unsafe_allow_html=True)
+</div>''', unsafe_allow_html=True)
 
 # ── STREAMLIT NATIVE TAB BAR ─────────────────────────────────────────────────
-# Use st.columns as clickable tab buttons — works without JS
+# Use st.columns as clickable tab buttons - works without JS
 _tab_labels = [label for icon, label in PAGES]
 _tab_cols = st.columns(len(PAGES))
 for i, (col, (icon, label)) in enumerate(zip(_tab_cols, PAGES)):
@@ -649,7 +631,7 @@ _active_idx = [l for _, l in PAGES].index(page)
 _bar_html = '<div style="display:flex;background:#E8F0E8;border-bottom:2px solid #C8D8C8;margin-bottom:2px">' 
 for i, (_, label) in enumerate(PAGES):
     _w = f"{100/len(PAGES):.1f}%"
-    _bg = "#006633" if i == _active_idx else "transparent"
+    _bg = "#2F80ED" if i == _active_idx else "transparent"
     _bar_html += f'<div style="flex:1;height:3px;background:{_bg}"></div>'
 _bar_html += '</div>'
 st.markdown(_bar_html, unsafe_allow_html=True)
@@ -662,16 +644,16 @@ if df is not None:
                               label_visibility="collapsed",
                               help="Filter counties by UCS score range")
     with fc2:
-        st.markdown(f'<div style="font-size:.7rem;color:#4A6A4A;padding:6px 0"><b style="color:#006633">{len(df)}</b> counties', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:.7rem;color:#6B7280;padding:6px 0"><b style="color:#006633">{len(df)}</b> counties', unsafe_allow_html=True)
     with fc3:
-        st.markdown(f'<div style="font-size:.7rem;color:#4A6A4A;padding:6px 0">Mean UCS <b style="color:#006633">{df["UCS"].mean():.1f}</b></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:.7rem;color:#6B7280;padding:6px 0">Mean UCS <b style="color:#006633">{df["UCS"].mean():.1f}</b></div>', unsafe_allow_html=True)
     with fc4:
         n_crit = len(df[df["UCS"] >= 70])
-        st.markdown(f'<div style="font-size:.7rem;color:#4A6A4A;padding:6px 0">Critical <b style="color:#BB0000">{n_crit}</b></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:.7rem;color:#6B7280;padding:6px 0">Critical <b style="color:#C0392B">{n_crit}</b></div>', unsafe_allow_html=True)
     with fc5:
         if "Anomaly" in df.columns:
             n_a = (df["Anomaly"] == "Anomaly").sum()
-            st.markdown(f'<div style="font-size:.7rem;color:#4A6A4A;padding:6px 0">Anomalies <b style="color:#D4600A">{n_a}</b></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.7rem;color:#6B7280;padding:6px 0">Anomalies <b style="color:#C8690A">{n_a}</b></div>', unsafe_allow_html=True)
     st.markdown("<hr style='margin:3px 0'>", unsafe_allow_html=True)
 else:
     ucs_range = (0, 100)
@@ -688,8 +670,8 @@ if page == "Overview":
 
     fdf = df[(df["UCS"] >= ucs_range[0]) & (df["UCS"] <= ucs_range[1])]
 
-    st.markdown('<p class="pg-title"> Kenya Healthcare Access Inequality Dashboard</p>', unsafe_allow_html=True)
-    st.markdown('<p class="pg-sub">Underserved County Score (UCS) · KDHS 2020 & 2022 · 47 Counties · Higher = More Underserved</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">Kenya Healthcare Access Inequality Dashboard</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-sub">Underserved County Score (UCS) · KDHS 2020 & 2022 · 47 Counties · Higher Score = More Underserved · Mean UCS = 56.67 · Range 0–100</p>', unsafe_allow_html=True)
 
     k1,k2,k3,k4,k5 = st.columns(5)
     with k1: kpi(len(fdf), "Counties", COLORS["blue"])
@@ -706,11 +688,11 @@ if page == "Overview":
     with left:
         b1, b2 = st.columns(2)
         with b1:
-            st.markdown("#####  Top 10 Underserved")
+            st.markdown("##### Top 10 Underserved")
             top10 = fdf["UCS"].sort_values(ascending=False).head(10).reset_index()
             top10.columns = ["County","UCS"]
             fig = px.bar(top10, x="UCS", y="County", orientation="h",
-                color="UCS", color_continuous_scale=["#fc8d59","#d73027"], range_color=[0,100])
+                color="UCS", color_continuous_scale=["#E8A87C","#C0392B"], range_color=[0,100])
             fig.update_traces(texttemplate="%{x:.0f}", textposition="outside", textfont_size=8)
             fig.update_layout(yaxis_autorange="reversed", height=240,
                 margin=dict(l=5,r=30,t=5,b=5), xaxis_title="", yaxis_title="",
@@ -720,11 +702,11 @@ if page == "Overview":
             st.plotly_chart(fig, use_container_width=True)
 
         with b2:
-            st.markdown("#####  Top 10 Best Served")
+            st.markdown("##### Top 10 Best Served")
             bot10 = fdf["UCS"].sort_values().head(10).reset_index()
             bot10.columns = ["County","UCS"]
             fig2 = px.bar(bot10, x="UCS", y="County", orientation="h",
-                color="UCS", color_continuous_scale=["#1a9850","#2166ac"], range_color=[0,100])
+                color="UCS", color_continuous_scale=["#5BA08A","#1A1A2E"], range_color=[0,100])
             fig2.update_traces(texttemplate="%{x:.0f}", textposition="outside", textfont_size=8)
             fig2.update_layout(yaxis_autorange="reversed", height=240,
                 margin=dict(l=5,r=30,t=5,b=5), xaxis_title="", yaxis_title="",
@@ -733,7 +715,7 @@ if page == "Overview":
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig2, use_container_width=True)
 
-        st.markdown("#####  Domain Score Distributions")
+        st.markdown("##### Domain Score Distributions")
         avail_domains = [d for d in DOMAINS if d in fdf.columns]
         if avail_domains:
             dmelt = fdf[avail_domains].copy()
@@ -749,39 +731,41 @@ if page == "Overview":
             st.plotly_chart(fig_box, use_container_width=True)
 
     with right:
-        st.markdown("#####  Domain Architecture (CV Weighted)")
+        st.markdown("##### Domain Architecture (CV Weighted)")
         fig_d = go.Figure(go.Pie(
-            labels=[f"{DOMAIN_META[d]["short"]}" for d in DOMAINS],
+            labels=[f"{""} {DOMAIN_META[d]['short']}" for d in DOMAINS],
             values=[25,25,25,25], hole=0.58,
             marker_colors=[DOMAIN_META[d]["color"] for d in DOMAINS],
             textinfo="label", textfont_size=9
         ))
         fig_d.update_layout(height=160, margin=dict(l=10,r=10,t=5,b=5), showlegend=False,
-            annotations=[dict(text="4 Domains<br>CV Weight", x=0.5, y=0.5, font_size=9, showarrow=False)],
+            annotations=[dict(text="CV Weighted<br>4 Domains", x=0.5, y=0.5, font_size=8, showarrow=False)],
             paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_d, use_container_width=True)
 
-        st.markdown("##### ️ UCS Map")
-        mf = st.selectbox("Filter", ["All","High (≥70)","Moderate (40–70)","Well Served (<40)"], key="ov_mf", label_visibility="collapsed")
+        st.markdown("##### UCS Map")
+        mf = st.selectbox("Filter", ["All Counties","Cluster 1 - Underserved (UCS ≥70)","Cluster 2 - Moderately Served (UCS <70)"], key="ov_mf", label_visibility="collapsed")
         mdf = fdf.copy()
-        if mf == "High (≥70)":        mdf = mdf[mdf["UCS"] >= 70]
-        elif mf == "Moderate (40–70)": mdf = mdf[(mdf["UCS"] >= 40) & (mdf["UCS"] < 70)]
-        elif mf == "Well Served (<40)":mdf = mdf[mdf["UCS"] < 40]
+        if mf == "Cluster 1 - Underserved (UCS ≥70)":     mdf = mdf[mdf["UCS"] >= 70]
+        elif mf == "Cluster 2 - Moderately Served (UCS <70)": mdf = mdf[mdf["UCS"] < 70]
 
         if FOLIUM_OK and "lat" in mdf.columns:
             m = build_folium_map(mdf, height=310)
             st_html(m._repr_html_(), height=310, scrolling=False)
-            st.caption(" ≥70 ·  40–70 ·  <40 · Click markers for detail")
+            st.caption("High (70+) · Moderate (40-70) · Well Served (<40) · Click markers for detail")
         else:
             fig_sc = px.scatter(mdf.reset_index(), x="lon", y="lat", color="UCS",
-                size="UCS", hover_name="index", color_continuous_scale="RdYlGn_r",
+                size="UCS", hover_name="index", color_continuous_scale=[[0,"#2B7A3F"],[0.5,"#F5F6FA"],[1,"#C0392B"]],
                 range_color=[0,100])
             fig_sc.update_layout(height=310, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig_sc, use_container_width=True)
 
     st.markdown("---")
     n_crit = len(fdf[fdf["UCS"] >= 70])
-    box(f"**{n_crit} counties** critically underserved (UCS ≥ 70). Mean UCS **{fdf['UCS'].mean():.1f}** signals substantial systemic inequality. Use the **KDHS Predictor** tab to score new county data.", "info")
+    box(f"**{n_crit} counties** critically underserved (UCS ≥ 70). Mean UCS **{fdf['UCS'].mean():.1f}** (range 0–100). "
+        f"ASAL counties dominate the top 10: Wajir (100.0), Marsabit (97.5), Turkana (96.4), Tana River (93.0), Samburu (89.9). "
+        f"Population Vulnerability is the strongest domain driver (r=0.83); Immunization Coverage is operationally independent (r=0.04). "
+        f"Use the **KDHS Predictor** tab to score new county data.", "info")
 
 # ─────────────────────────────────────────────────────────────
 # PAGE: MAP
@@ -791,7 +775,7 @@ elif page == "Map":
     if df is None:
         st.error("Data not found."); st.stop()
 
-    st.markdown('<p class="pg-title">️ Interactive Map</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">Interactive Map</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Geographic distribution of healthcare underservice across all 47 counties</p>', unsafe_allow_html=True)
 
     c1,c2 = st.columns([2,1])
@@ -820,7 +804,7 @@ elif page == "Map":
                 if d in row:
                     popup += f"• {DOMAIN_META[d]['short']}: {row[d]:.3f}<br>"
             if "Anomaly" in row and row["Anomaly"] == "Anomaly":
-                popup += "<br>️ <b>Anomaly flagged</b>"
+                popup += "<br><b>Anomaly flagged</b>"
             popup += "</div>"
             is_anom = show_labels and "Anomaly" in row and row["Anomaly"] == "Anomaly"
             if is_anom:
@@ -828,7 +812,7 @@ elif page == "Map":
                     location=[lat, lon],
                     popup=folium.Popup(popup, max_width=230),
                     icon=folium.Icon(color="red", icon="warning-sign", prefix="glyphicon"),
-                    tooltip=f"️ {county}"
+                    tooltip=f"{county}"
                 ).add_to(m)
             else:
                 folium.CircleMarker(
@@ -840,7 +824,7 @@ elif page == "Map":
         st_html(m._repr_html_(), height=520, scrolling=False)
     else:
         fig_sc = px.scatter(mdf.reset_index(), x="lon", y="lat", color="UCS",
-            size="UCS", hover_name="index", color_continuous_scale="RdYlGn_r",
+            size="UCS", hover_name="index", color_continuous_scale=[[0,"#2B7A3F"],[0.5,"#F5F6FA"],[1,"#C0392B"]],
             range_color=[0,100], title="County Locations (proxy scatter)")
         fig_sc.update_layout(height=480)
         st.plotly_chart(fig_sc, use_container_width=True)
@@ -860,7 +844,7 @@ elif page == "PCA Analysis":
     if df is None: st.error("Data not found."); st.stop()
     if not SKLEARN_OK: st.warning("scikit-learn required for PCA."); st.stop()
 
-    st.markdown('<p class="pg-title"> Principal Component Analysis</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">Principal Component Analysis</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Dimensionality reduction to understand feature composition and county clustering</p>', unsafe_allow_html=True)
 
     avail = [d for d in DOMAINS if d in df.columns]
@@ -879,7 +863,7 @@ elif page == "PCA Analysis":
         st.markdown("##### Variance Explained by Component")
         fig_var = go.Figure()
         fig_var.add_trace(go.Bar(x=[f"PC{i+1}" for i in range(len(var_exp))],
-            y=var_exp, name="Individual", marker_color=COLORS["blue"]))
+            y=var_exp, name="Individual", marker_color=COLORS["navy"]))
         fig_var.add_trace(go.Scatter(x=[f"PC{i+1}" for i in range(len(cumvar))],
             y=cumvar, name="Cumulative", yaxis="y2",
             line=dict(color=COLORS["red"], width=2)))
@@ -916,7 +900,7 @@ elif page == "PCA Analysis":
     with cp1:
         fig_sc = px.scatter(pca_df, x="PC1", y="PC2", color=color_col,
             hover_name="County", size="UCS",
-            color_continuous_scale="RdYlGn_r" if color_col == "UCS" else None,
+            color_continuous_scale=[[0,"#2B7A3F"],[0.5,"#F5F6FA"],[1,"#C0392B"]] if color_col == "UCS" else None,
             title="Counties in PCA space")
         fig_sc.update_layout(height=380, margin=dict(l=20,r=20,t=35,b=20))
         st.plotly_chart(fig_sc, use_container_width=True)
@@ -944,7 +928,7 @@ elif page == "PCA Analysis":
 elif page == "County Deep Dive":
     if df is None: st.error("Data not found."); st.stop()
 
-    st.markdown('<p class="pg-title"> County Deep Dive</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">County Deep Dive</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Domain profiles, percentile ranks, SHAP drivers and multi-county comparison</p>', unsafe_allow_html=True)
 
     fdf = df[(df["UCS"] >= ucs_range[0]) & (df["UCS"] <= ucs_range[1])]
@@ -965,7 +949,7 @@ elif page == "County Deep Dive":
         st.metric("Cluster", cl[:20]+"…" if len(cl)>20 else cl)
     with m3:
         an = cdata.get("Anomaly","Normal")
-        st.metric("Anomaly", "️ Yes" if an=="Anomaly" else " No")
+        st.metric("Anomaly", "Yes" if an=="Anomaly" else "No")
     with m4:
         ap = cdata.get("Anomaly_prob",0)*100
         st.metric("Anomaly Prob", f"{ap:.1f}%")
@@ -983,7 +967,7 @@ elif page == "County Deep Dive":
             vals = {DOMAIN_META[d]["short"]: norm_val(cdata[d], df[d]) for d in avail_domains}
             st.plotly_chart(radar_chart(vals, selected, 250), use_container_width=True)
         else:
-            st.markdown("##### ️ Comparison")
+            st.markdown("##### Comparison")
             comp = [selected]
             rem = [c for c in county_list if c != selected]
             c2 = st.selectbox("2nd County", rem, key="c2")
@@ -1008,10 +992,10 @@ elif page == "County Deep Dive":
             st.plotly_chart(fig_r, use_container_width=True)
 
     with dom_c:
-        st.markdown("#####  Domain Scores")
+        st.markdown("##### Domain Scores")
         for d in avail_domains:
             n = norm_val(cdata[d], df[d])
-            st.markdown(f"<span style='font-size:.78rem;font-weight:600'>{DOMAIN_META[d]["short"]}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-size:.78rem;font-weight:600'>{""} {DOMAIN_META[d]['short']}</span>", unsafe_allow_html=True)
             st.progress(n/100, text=f"{n:.0f}%")
         st.markdown("<span style='font-size:.72rem;font-weight:600;color:#555'>Percentile vs 47 counties</span>", unsafe_allow_html=True)
         pct_rows = []
@@ -1021,7 +1005,7 @@ elif page == "County Deep Dive":
         st.dataframe(pd.DataFrame(pct_rows).set_index("Domain"), height=130, use_container_width=True)
 
     with sh_c:
-        st.markdown("#####  SHAP Drivers")
+        st.markdown("##### SHAP Drivers")
         if shap_df is not None:
             rdf = shap_df[shap_df.index==selected] if "County" not in shap_df.columns else shap_df[shap_df["County"]==selected]
             if len(rdf) > 0:
@@ -1044,7 +1028,7 @@ elif page == "County Deep Dive":
 
     if mode != "Single":
         st.markdown("---")
-        st.markdown("#####  Comparison Table")
+        st.markdown("##### Comparison Table")
         rows = []
         for cn in comp:
             if cn in df.index:
@@ -1060,27 +1044,57 @@ elif page == "County Deep Dive":
 elif page == "ML & SHAP":
     if df is None: st.error("Data not found."); st.stop()
 
-    st.markdown('<p class="pg-title"> ML & SHAP — Model Insights</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">ML & SHAP - Model Insights</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">XGBoost · Feature importance · Anomaly detection · County SHAP drill-down · Policy implications</p>', unsafe_allow_html=True)
 
     MODEL_METRICS = {
-        "XGBoost":             {"roc_auc": 0.84, "precision": 0.82, "recall": 0.79, "f1": 0.80},
-        "Gradient Boosting":   {"roc_auc": 0.82, "precision": 0.80, "recall": 0.77, "f1": 0.78},
-        "Random Forest":       {"roc_auc": 0.81, "precision": 0.79, "recall": 0.76, "f1": 0.77},
-        "Logistic Regression": {"roc_auc": 0.75, "precision": 0.72, "recall": 0.68, "f1": 0.70},
+        "Random Forest":       {"accuracy": 87.0, "f1": 0.80, "roc_auc": 0.7944, "holdout_auc": 0.5769, "note": "Best CV AUC (0.79)"},
+        "XGBoost":             {"accuracy": 87.0, "f1": 0.80, "roc_auc": None,   "holdout_auc": 0.4808, "note": "Best overall model selected"},
+        "Gradient Boosting":   {"accuracy": 87.0, "f1": 0.80, "roc_auc": 0.6764, "holdout_auc": 0.5000, "note": "CV AUC 0.68"},
+        "Logistic Regression": {"accuracy": 80.0, "f1": 0.77, "roc_auc": 0.6333, "holdout_auc": 0.4615, "note": "Linear baseline"},
     }
 
-    ms_col, p1c, p2c, p3c = st.columns([1.5,1,1,1])
+    ms_col, p1c, p2c, p3c, p4c = st.columns([1.5,1,1,1,1])
     with ms_col: sel_model = st.selectbox("Model", list(MODEL_METRICS.keys()))
     mm = MODEL_METRICS[sel_model]
-    with p1c: st.metric("ROC-AUC",  f"{mm['roc_auc']:.1f}%")
-    with p2c: st.metric("F1-Score",  f"{mm['f1']:.2f}")
-    with p3c: st.metric("ROC-AUC",   f"{mm['roc_auc']:.2f}")
+    with p1c: st.metric("Accuracy",  f"{mm['accuracy']:.0f}%")
+    with p2c: st.metric("Wtd F1",    f"{mm['f1']:.2f}")
+    cv_str = f"{mm['roc_auc']:.3f}" if mm['roc_auc'] else "-"
+    with p3c: st.metric("CV AUC",    cv_str)
+    with p4c: st.metric("Holdout AUC", f"{mm['holdout_auc']:.3f}")
 
-    box(f"**{sel_model}** achieves {mm['roc_auc']:.1f}% ROC-AUC explaining two-cluster membership. XGBoost leads and meets the dissertation validation criterion; SHAP is used for interpretability.", "info")
+    box(f"**{sel_model}**: {mm['note']}. Note: small dataset (N=47, 5 anomalies) limits AUC reliability. Random Forest achieved the strongest cross-validated AUC (0.79). SHAP values interpret the XGBoost model outputs.", "info")
     st.markdown("---")
 
-    st.markdown("#####  SHAP Explorer")
+
+    # ── KEY FINDINGS FROM NOTEBOOK ─────────────────────────────
+    st.markdown("##### Key Findings - KDHS 2020 & 2022 Analysis")
+    nf1, nf2, nf3, nf4 = st.columns(4)
+    with nf1:
+        kpi("k=2", "Optimal Clusters", COLORS["blue"])
+        st.caption("Silhouette = 0.459 (k=2 best across all 3 metrics)")
+    with nf2:
+        kpi("5", "Anomalous Counties", COLORS["orange"])
+        st.caption("Turkana · Nairobi · Marsabit · Tana River · Kilifi")
+    with nf3:
+        kpi("0.794", "Best CV AUC", COLORS["teal"])
+        st.caption("Random Forest · XGBoost selected as primary model")
+    with nf4:
+        kpi("r = 0.83", "Pop. Vulnerability", COLORS["red"])
+        st.caption("Strongest domain driver (r²=0.692)")
+
+    st.markdown("""
+| Domain | CV Weight | r with UCS | r² |
+|---|---|---|---|
+| Population Vulnerability Index | 0.3997 | 0.832 | 0.692 |
+| Healthcare Access Index | 0.3717 | 0.814 | 0.663 |
+| Disease Burden Index | 0.2258 | 0.650 | 0.423 |
+| Immunization Coverage Index | 0.0028 | 0.039 | 0.002 |
+    """)
+    box("Immunization Coverage is operationally independent (r=0.039, CV weight=0.003). Vertical programme success does not automatically translate to broader health system strength.", "warn")
+
+    st.markdown("---")
+    st.markdown("##### SHAP Explorer")
     if shap_df is None:
         box("shap_values.csv not found. Run the UCS notebook first.", "warn")
     else:
@@ -1109,7 +1123,7 @@ elif page == "ML & SHAP":
                 with vi_col: st.metric("UCS", f"{ucs_v2:.1f}" if isinstance(ucs_v2,float) else ucs_v2)
                 shap_fig = px.bar(sv, orientation="h", color=sv.values,
                     color_continuous_scale=[COLORS["blue"],COLORS["red"]],
-                    title=f"SHAP — {sel_c}")
+                    title=f"SHAP - {sel_c}")
                 insight_txt = f"**{sv.idxmax()}** drives **{sv.max()/sv.sum()*100:.0f}%** of {sel_c}'s UCS prediction."
 
         elif view_mode == "Top 5 Underserved":
@@ -1120,7 +1134,7 @@ elif page == "ML & SHAP":
             with vi_col: st.metric("Avg UCS", f"{df.loc[top5,'UCS'].mean():.1f}")
             shap_fig = px.bar(sv, orientation="h", color=sv.values,
                 color_continuous_scale=[COLORS["blue"],COLORS["red"]],
-                title="SHAP — Top 5 Underserved")
+                title="SHAP - Top 5 Underserved")
             insight_txt = f"**{sv.idxmax()}** is the shared driver across the 5 most underserved counties."
 
         elif view_mode == "Underserved vs Well-Served":
@@ -1137,14 +1151,14 @@ elif page == "ML & SHAP":
                 xaxis_tickfont_size=9, legend=dict(font_size=9),
                 title="SHAP: Underserved vs Well-Served",
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-            insight_txt = f"**{(sh-sl).idxmax()}** shows the largest SHAP gap — strongest differentiator of inequality."
+            insight_txt = f"**{(sh-sl).idxmax()}** shows the largest SHAP gap - strongest differentiator of inequality."
 
         else:  # All Counties Average
             sv = pd.Series({DOMAIN_META[c]["short"]: abs(shap_data[c].mean()) for c in avail_d}).sort_values()
             with vi_col: st.metric("Counties", len(shap_data))
             shap_fig = px.bar(sv, orientation="h", color=sv.values,
                 color_continuous_scale=[COLORS["blue"],COLORS["red"]],
-                title="SHAP — All 47 Counties Average")
+                title="SHAP - All 47 Counties Average")
             insight_txt = f"**{sv.idxmax()}** is the strongest system-wide predictor (avg SHAP {sv.max():.3f})."
 
         if shap_fig is not None:
@@ -1160,35 +1174,41 @@ elif page == "ML & SHAP":
     ac, pc = st.columns([1.2,1])
 
     with ac:
-        st.markdown("##### ️ Anomaly Detection")
+        st.markdown("##### Anomaly Detection")
         if "Anomaly" in df.columns:
             adf = df.copy()
-            adf["Status"] = adf["Anomaly"].map(lambda x: "️ Anomaly" if x=="Anomaly" else "Normal")
+            adf["Status"] = adf["Anomaly"].map(lambda x: "Anomaly" if x=="Anomaly" else "Normal")
             avail_x = DOMAINS[0] if DOMAINS[0] in adf.columns else adf.select_dtypes("number").columns[0]
             fig_a = px.scatter(adf, x="UCS", y=avail_x, color="Status",
-                color_discrete_map={"️ Anomaly": COLORS["red"], "Normal": COLORS["blue"]},
+                color_discrete_map={"Anomaly": COLORS["red"], "Normal": COLORS["blue"]},
                 hover_name=adf.index)
             fig_a.update_layout(height=210, margin=dict(l=5,r=5,t=20,b=5),
                 legend=dict(font_size=9),
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig_a, use_container_width=True)
             n_a = (df["Anomaly"]=="Anomaly").sum()
-            if n_a > 0: box(f"{n_a} counties flagged — unusual domain profiles vs cluster peers.", "warn")
+            if n_a > 0: box(f"{n_a} counties flagged - unusual domain profiles vs cluster peers.", "warn")
             else: box("No significant anomalies detected.", "ok")
 
     with pc:
-        st.markdown("#####  UCS Distribution")
-        n_h = len(df[df["UCS"]>=70]); n_m = len(df[(df["UCS"]>=40)&(df["UCS"]<70)]); n_l = len(df[df["UCS"]<40])
-        fig_p = px.pie(
-            pd.DataFrame({"Cat":["High (≥70)","Moderate","Well Served (<40)"],"N":[n_h,n_m,n_l]}),
-            values="N", names="Cat",
-            color_discrete_map={"High (≥70)":COLORS["red"],"Moderate":COLORS["orange"],"Well Served (<40)":COLORS["green"]}
-        )
-        fig_p.update_layout(height=200, margin=dict(l=5,r=5,t=10,b=5),
-            legend=dict(font_size=9), paper_bgcolor="rgba(0,0,0,0)")
-        fig_p.update_traces(textinfo="percent+label", textfont_size=9)
+        st.markdown("##### County Clusters (K-Means k=2)")
+        # Show the 2-cluster solution from the notebook - not 3 UCS bands
+        fig_p = go.Figure(go.Pie(
+            labels=["Cluster 1 - Structurally Underserved (n=8)",
+                    "Cluster 2 - Moderately Served (n=39)"],
+            values=[8, 39], hole=0.52,
+            marker_colors=[COLORS["orange_dark"], COLORS["blue"]],
+            textinfo="percent", textfont_size=9
+        ))
+        fig_p.update_layout(
+            height=200, margin=dict(l=5,r=5,t=10,b=5),
+            showlegend=True,
+            legend=dict(font_size=8, orientation="v", x=0.55, y=0.5),
+            annotations=[dict(text="k=2<br>Sil=0.459", x=0.18, y=0.5,
+                             font_size=8, showarrow=False)],
+            paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_p, use_container_width=True)
-        box(f"**{n_h}** need urgent action · **{n_m}** moderate · **{n_l}** relatively well-served.", "info")
+        box("Cluster 1 (8 counties): Garissa, Mandera, Marsabit, Samburu, Tana River, Turkana, Wajir, West Pokot - all ASAL. Cluster 2 (39 counties): all remaining. Silhouette = 0.459, k=2 confirmed optimal.", "info")
 
 # ─────────────────────────────────────────────────────────────
 # PAGE: KDHS PREDICTOR  ← NEW
@@ -1196,7 +1216,7 @@ elif page == "ML & SHAP":
 
 elif page == "KDHS Predictor":
 
-    st.markdown('<p class="pg-title"> KDHS Raw Data Predictor</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">KDHS Raw Data Predictor</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Upload a raw KDHS CSV → auto-map columns to domains → compute domain scores → predict UCS for each county</p>', unsafe_allow_html=True)
 
     # ── Step indicator ──────────────────────────────────────
@@ -1209,7 +1229,7 @@ elif page == "KDHS Predictor":
     st.markdown("---")
 
     # ── STEP 1: Upload ───────────────────────────────────────
-    st.markdown("#### Step 1 — Upload Raw KDHS Data")
+    st.markdown("#### Step 1 - Upload Raw KDHS Data")
 
     col_up, col_fmt = st.columns([2, 1])
     with col_up:
@@ -1260,7 +1280,7 @@ elif page == "KDHS Predictor":
 
             demo_df = pd.DataFrame(demo_data)
             csv_bytes = demo_df.to_csv(index=False).encode()
-            st.download_button("Download demo CSV to upload above", csv_bytes,
+            st.download_button("Download demo CSV", csv_bytes,
                 file_name="kdhs_demo.csv", mime="text/csv")
             st.session_state["demo_df"] = demo_df
             box("Demo data generated! Download and re-upload, or we'll use it directly below.", "ok")
@@ -1303,7 +1323,7 @@ elif page == "KDHS Predictor":
         st.markdown("---")
 
         # ── STEP 2: Column Mapping ───────────────────────────
-        st.markdown("#### Step 2 — Column → Domain Mapping")
+        st.markdown("#### Step 2 - Column → Domain Mapping")
         box("Columns are auto-mapped to domains by keyword matching. Adjust any misclassified columns below.", "info")
 
         auto_mapping = auto_map_columns(raw_df)
@@ -1317,7 +1337,7 @@ elif page == "KDHS Predictor":
                 color = DOMAIN_META[domain]["color"]
                 st.markdown(f"""<div class="kpi" style="--kc:{color}">
                     <div class="v">{n}</div>
-                    <div class="l">{DOMAIN_META[domain]["short"]}</div>
+                    <div class="l">{DOMAIN_META[domain]['icon']} {DOMAIN_META[domain]['short']}</div>
                 </div>""", unsafe_allow_html=True)
 
         if unmapped:
@@ -1350,14 +1370,14 @@ elif page == "KDHS Predictor":
         st.markdown("---")
 
         # ── STEP 3: Compute Domain Scores ────────────────────
-        st.markdown("#### Step 3 — Compute Domain Scores")
+        st.markdown("#### Step 3 - Compute Domain Scores")
 
         min_cols_ok = all(len(final_mapping[d]) > 0 for d in DOMAINS)
         if not min_cols_ok:
             missing = [DOMAIN_META[d]["short"] for d in DOMAINS if not final_mapping[d]]
             box(f"Missing columns for: **{', '.join(missing)}**. Assign at least one column per domain to proceed.", "warn")
         else:
-            if st.button("️ Compute Domain Scores & Predict UCS", type="primary"):
+            if st.button("Compute Domain Scores & Predict UCS", type="primary"):
                 with st.spinner("Computing domain scores using PCA weighting…"):
                     try:
                         domain_scores = pd.DataFrame(index=raw_df.index)
@@ -1388,7 +1408,7 @@ elif page == "KDHS Predictor":
                                 from sklearn.cluster import KMeans
                                 km = KMeans(n_clusters=2, random_state=42, n_init=10)
                                 km.fit(domain_scores[DOMAINS].fillna(0))
-                                domain_scores["Cluster"] = ["Cluster 1: Structurally Underserved" if l==km.labels_[domain_scores["UCS"].idxmax()] else "Cluster 2: Moderately Served" for l in km.labels_]
+                                domain_scores["Cluster"] = ["Structurally Underserved" if l==km.labels_[domain_scores["UCS"].idxmax()] else "Moderately Served" for l in km.labels_]
                             except Exception:
                                 pass
 
@@ -1402,7 +1422,7 @@ elif page == "KDHS Predictor":
         if "prediction_results" in st.session_state:
             results = st.session_state["prediction_results"]
             st.markdown("---")
-            st.markdown("#### Step 4 — Prediction Results")
+            st.markdown("#### Step 4 - Prediction Results")
 
             # KPI summary
             k1c, k2c, k3c, k4c, k5c = st.columns(5)
@@ -1420,11 +1440,11 @@ elif page == "KDHS Predictor":
 
             with res_left:
                 # Top/bottom bar charts
-                st.markdown("#####  Most Underserved")
+                st.markdown("##### Most Underserved")
                 top_r = results["UCS"].sort_values(ascending=False).head(10).reset_index()
                 top_r.columns = ["County","UCS"]
                 fig_tr = px.bar(top_r, x="UCS", y="County", orientation="h",
-                    color="UCS", color_continuous_scale=["#fc8d59","#d73027"], range_color=[0,100])
+                    color="UCS", color_continuous_scale=["#E8A87C","#C0392B"], range_color=[0,100])
                 fig_tr.update_traces(texttemplate="%{x:.1f}", textposition="outside", textfont_size=9)
                 fig_tr.update_layout(yaxis_autorange="reversed", height=270,
                     margin=dict(l=5,r=30,t=5,b=5), xaxis_title="", yaxis_title="",
@@ -1453,8 +1473,8 @@ elif page == "KDHS Predictor":
                 heat_df = results[DOMAINS].round(1)
                 heat_df.columns = [DOMAIN_META[d]["short"] for d in DOMAINS]
                 fig_h = px.imshow(heat_df.sort_values(by=list(heat_df.columns), ascending=False).head(20),
-                    color_continuous_scale="RdYlGn_r", aspect="auto",
-                    title="Top 20 counties — domain scores")
+                    color_continuous_scale=[[0,"#2B7A3F"],[0.5,"#F5F6FA"],[1,"#C0392B"]], aspect="auto",
+                    title="Top 20 counties - domain scores")
                 fig_h.update_layout(height=300, margin=dict(l=5,r=5,t=30,b=5),
                     xaxis_tickfont_size=9, yaxis_tickfont_size=8)
                 st.plotly_chart(fig_h, use_container_width=True)
@@ -1466,7 +1486,7 @@ elif page == "KDHS Predictor":
             with d1:
                 csv_out = results.round(3).to_csv().encode()
                 st.download_button(
-                    "⬇️ Download UCS Predictions (CSV)",
+                    "Download UCS Predictions (CSV)",
                     csv_out, file_name="ucs_predictions.csv", mime="text/csv",
                     type="primary"
                 )
@@ -1486,7 +1506,7 @@ elif page == "KDHS Predictor":
                     corr = comp_df.corr().iloc[0,1]
                     fig_cmp = px.scatter(comp_df, x="Reference UCS", y="Predicted UCS",
                         hover_name=comp_df.index,
-                        title=f"Predicted vs Reference UCS — r = {corr:.2f}")
+                        title=f"Predicted vs Reference UCS - r = {corr:.2f}")
                     fig_cmp.add_trace(go.Scatter(x=[0,100], y=[0,100],
                         mode="lines", line=dict(dash="dash", color="gray"),
                         name="Perfect agreement", showlegend=True))
@@ -1507,6 +1527,6 @@ elif page == "KDHS Predictor":
 
 st.markdown("---")
 st.caption(
-    "Kenya Health Gap Dashboard v2 · UCS Methodology · KDHS 2020 & 2022 · 47 Counties · "
+    "Kenya Health Equity Monitor Dashboard v2 · UCS Methodology · KDHS 2020 & 2022 · 47 Counties · "
     "Cynthia Ngugi (138725) · MSc Data Science & Analytics, Strathmore University"
 )
