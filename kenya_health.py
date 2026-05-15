@@ -445,14 +445,12 @@ def box(text, kind="info"):
     st.markdown(f'<div class="box-{kind}">{leader}{text}</div>', unsafe_allow_html=True)
 
 def ucs_color(score):
-    if score >= 70: return COLORS["red"]
-    if score >= 40: return COLORS["orange"]
-    return COLORS["green"]
+    if score >= 70: return COLORS["red"]       # Cluster 1
+    return COLORS["blue"]                       # Cluster 2
 
 def ucs_label(score):
-    if score >= 70: return "Most Underserved"
-    if score >= 40: return "Moderate"
-    return "Well Served"
+    if score >= 70: return "Cluster 1 — Structurally Underserved"
+    return "Cluster 2 — Moderately Served"
 
 def norm_val(val, series):
     mn, mx = series.min(), series.max()
@@ -479,8 +477,9 @@ def build_folium_map(data, height=380):
         lat, lon = row.get("lat"), row.get("lon")
         if pd.isna(lat) or pd.isna(lon): continue
         ucs_v = row.get("UCS", 0)
-        col = "red" if ucs_v >= 70 else "orange" if ucs_v >= 40 else "green"
-        popup = f"<b>{county}</b><br>UCS: {ucs_v:.1f} — {ucs_label(ucs_v)}<hr>"
+        col = "red" if ucs_v >= 70 else "blue"  # 2 clusters only
+        cluster_lbl = "Cluster 1 — Structurally Underserved" if ucs_v >= 70 else "Cluster 2 — Moderately Served"
+        popup = f"<b>{county}</b><br>UCS: {ucs_v:.1f}<br>{cluster_lbl}<hr>"
         for d in DOMAINS:
             if d in row:
                 popup += f"{DOMAIN_META[d]['short']}: {row[d]:.3f}<br>"
@@ -752,11 +751,15 @@ if page == "Overview":
         if FOLIUM_OK and "lat" in mdf.columns:
             m = build_folium_map(mdf, height=310)
             st_html(m._repr_html_(), height=310, scrolling=False)
-            st.caption("High (70+) · Moderate (40-70) · Well Served (<40) · Click markers for detail")
+            st.caption("Red = Cluster 1 — Structurally Underserved (UCS ≥70, n=8)  ·  Blue = Cluster 2 — Moderately Served (UCS <70, n=39)  ·  Click markers for detail")
         else:
-            fig_sc = px.scatter(mdf.reset_index(), x="lon", y="lat", color="UCS",
-                size="UCS", hover_name="index", color_continuous_scale=[[0,"#2B7A3F"],[0.5,"#F5F6FA"],[1,"#C0392B"]],
-                range_color=[0,100])
+            mdf_plot = mdf.reset_index()
+            mdf_plot["Cluster"] = mdf_plot["UCS"].apply(
+                lambda v: "Cluster 1 — Underserved" if v >= 70 else "Cluster 2 — Moderately Served")
+            fig_sc = px.scatter(mdf_plot, x="lon", y="lat", color="Cluster",
+                color_discrete_map={"Cluster 1 — Underserved": "#D94A38",
+                                    "Cluster 2 — Moderately Served": "#2F80ED"},
+                size="UCS", hover_name="index")
             fig_sc.update_layout(height=310, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig_sc, use_container_width=True)
 
@@ -780,15 +783,18 @@ elif page == "Map":
 
     c1,c2 = st.columns([2,1])
     with c1:
-        mf = st.selectbox("Filter by UCS", ["All","Critical (≥70)","High (50–70)","Moderate (30–50)","Low (<30)"])
+        mf = st.selectbox("Filter by Cluster", [
+            "All Counties",
+            "Cluster 1 — Structurally Underserved (≥70)",
+            "Cluster 2 — Moderately Served (<70)"])
     with c2:
         show_labels = st.checkbox("Label anomalies", value=True)
 
     mdf = df.copy()
-    if mf == "Critical (≥70)":    mdf = mdf[mdf["UCS"] >= 70]
-    elif mf == "High (50–70)":    mdf = mdf[(mdf["UCS"] >= 50) & (mdf["UCS"] < 70)]
-    elif mf == "Moderate (30–50)":mdf = mdf[(mdf["UCS"] >= 30) & (mdf["UCS"] < 50)]
-    elif mf == "Low (<30)":       mdf = mdf[mdf["UCS"] < 30]
+    if mf == "Cluster 1 — Structurally Underserved (≥70)":
+        mdf = mdf[mdf["UCS"] >= 70]
+    elif mf == "Cluster 2 — Moderately Served (<70)":
+        mdf = mdf[mdf["UCS"] < 70]
 
     st.caption(f"Showing {len(mdf)} / 47 counties")
 
@@ -798,7 +804,7 @@ elif page == "Map":
             lat, lon = row.get("lat"), row.get("lon")
             if pd.isna(lat) or pd.isna(lon): continue
             ucs_v = row["UCS"]
-            col = "red" if ucs_v >= 70 else "orange" if ucs_v >= 50 else "beige" if ucs_v >= 30 else "green"
+            col = "red" if ucs_v >= 70 else "blue"  # 2 clusters: Cluster1=red, Cluster2=blue
             popup = f"<div style='width:200px'><b>{county}</b><br><b>UCS:</b> {ucs_v:.1f}<br><hr>"
             for d in DOMAINS:
                 if d in row:
@@ -829,12 +835,14 @@ elif page == "Map":
         fig_sc.update_layout(height=480)
         st.plotly_chart(fig_sc, use_container_width=True)
 
-    st.markdown("| | UCS Range | Status |")
-    st.markdown("|---|---|---|")
-    st.markdown("|  | ≥70 | Critical underservice |")
-    st.markdown("|  | 50–70 | High underservice |")
-    st.markdown("|  | 30–50 | Moderate |")
-    st.markdown("|  | <30 | Relatively well served |")
+    st.markdown("""
+| Marker | Cluster | Counties | UCS Range |
+|---|---|---|---|
+| Red | Cluster 1 — Structurally Underserved | 8 ASAL counties | ≥ 70 |
+| Blue | Cluster 2 — Moderately Served | 39 remaining counties | < 70 |
+
+K-Means k=2 · Silhouette = 0.459 · Davies-Bouldin = 1.008 · Calinski-Harabasz = 28.6
+""")
 
 # ─────────────────────────────────────────────────────────────
 # PAGE: PCA ANALYSIS
@@ -1138,15 +1146,15 @@ elif page == "ML & SHAP":
             insight_txt = f"**{sv.idxmax()}** is the shared driver across the 5 most underserved counties."
 
         elif view_mode == "Underserved vs Well-Served":
-            high = df[df["UCS"] >= 70].index; low = df[df["UCS"] < 40].index
+            high = df[df["UCS"] >= 70].index; low = df[df["UCS"] < 70].index  # 2 clusters
             sh = shap_data[shap_data["County"].isin(high)][avail_d].mean() if has_county else shap_data[shap_data.index.isin(high)][avail_d].mean()
             sl = shap_data[shap_data["County"].isin(low)][avail_d].mean()  if has_county else shap_data[shap_data.index.isin(low)][avail_d].mean()
             sh.index = [DOMAIN_META.get(c,{}).get("short",c) for c in sh.index]
             sl.index = [DOMAIN_META.get(c,{}).get("short",c) for c in sl.index]
-            cmp = pd.DataFrame({"Underserved (≥70)": sh, "Well Served (<40)": sl})
+            cmp = pd.DataFrame({"Cluster 1 — Underserved (≥70)": sh, "Cluster 2 — Moderately Served (<70)": sl})
             shap_fig = go.Figure()
-            shap_fig.add_trace(go.Bar(name="Underserved", x=cmp.index, y=cmp["Underserved (≥70)"], marker_color=COLORS["red"]))
-            shap_fig.add_trace(go.Bar(name="Well Served",  x=cmp.index, y=cmp["Well Served (<40)"],  marker_color=COLORS["green"]))
+            shap_fig.add_trace(go.Bar(name="Cluster 1 — Underserved", x=cmp.index, y=cmp["Cluster 1 — Underserved (≥70)"], marker_color=COLORS["red"]))
+            shap_fig.add_trace(go.Bar(name="Cluster 2 — Moderately Served", x=cmp.index, y=cmp["Cluster 2 — Moderately Served (<70)"], marker_color=COLORS["blue"]))
             shap_fig.update_layout(barmode="group", height=230, margin=dict(l=5,r=5,t=30,b=5),
                 xaxis_tickfont_size=9, legend=dict(font_size=9),
                 title="SHAP: Underserved vs Well-Served",
