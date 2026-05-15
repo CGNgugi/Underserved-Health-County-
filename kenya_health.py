@@ -71,20 +71,27 @@ st.set_page_config(
 # CONSTANTS
 # ─────────────────────────────────────────────────────────────
 
-# MoH Kenya dashboard palette — white bg, navy text, orange accent
+# Palette from pasted .py — blue primary, clean MoH public-health style
 COLORS = {
-    "navy":   "#1A1A2E",   # primary text / headers
-    "orange": "#C8690A",   # primary accent (MoH dashboard orange)
-    "red":    "#C0392B",   # critical / alert
-    "green":  "#2B7A3F",   # positive / well-served
-    "blue":   "#3B5BDB",   # info
-    "grey":   "#6B7280",   # secondary text
-    "light":  "#F5F6FA",   # page background
-    "white":  "#FFFFFF",
-    "border": "#DDE1EA",
-    "amber":  "#C8690A",   # alias
-    "teal":   "#0D7377",
-    "purple": "#6D28D9",
+    "blue":         "#2F80ED",   # primary blue
+    "blue_dark":    "#1B4F9C",   # dark blue (headings, active nav)
+    "blue_light":   "#EAF3FF",   # very light blue (hover, bg tint)
+    "orange":       "#F2994A",   # accent / KPI values
+    "orange_dark":  "#C75B12",   # critical / Cluster 1
+    "red":          "#D94A38",   # alert
+    "gray":         "#4F4F4F",   # body text
+    "gray_light":   "#F8FAFC",   # page background
+    "border":       "#D9E2EC",   # borders
+    "black":        "#222222",   # headings
+    "white":        "#FFFFFF",
+    "purple":       "#7E57C2",
+    "green":        "#2E7D32",
+    "amber":        "#F2994A",
+    "light":        "#F8FAFC",
+    "mid":          "#EEF3F8",
+    "teal":         "#2D9CDB",
+    "navy":         "#1B4F9C",
+    "gold":         "#F2994A",
 }
 
 DOMAINS = [
@@ -151,273 +158,251 @@ KENYA_COORDS = {
 
 st.markdown("""
 <style>
-/* ── FONTS ──────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 html, body, [class*="css"] {
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    color: #1A1A2E;
-    background: #F5F6FA;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: #222222;
+    background: #FFFFFF;
 }
 
-/* ── HIDE STREAMLIT CHROME ──────────────────────────── */
 #MainMenu, footer, header { visibility: hidden; }
 
-/* ── LAYOUT ─────────────────────────────────────────── */
 .block-container {
-    padding: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0.35rem !important;
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
     max-width: 100% !important;
 }
-div[data-testid="stVerticalBlock"] > div { gap: 0.2rem !important; }
-.element-container { margin-bottom: 0.1rem !important; }
+
+div[data-testid="stVerticalBlock"] > div { gap: 0.22rem !important; }
+.element-container { margin-bottom: 0.12rem !important; }
 .stPlotlyChart { margin-bottom: 0 !important; }
-hr { margin: 0.3rem 0 !important; border-color: #DDE1EA !important; }
+hr { margin: 0.35rem 0 !important; border-color: #D9E2EC !important; }
 
-/* ── SIDEBAR HIDDEN ─────────────────────────────────── */
-section[data-testid="stSidebar"] { display: none !important; }
-
-/* ── MOH HEADER BAND ────────────────────────────────── */
+/* Header — white with blue bottom border, matching MoH COVID dashboard */
 .moh-header {
     background: #FFFFFF;
-    padding: 0;
-    border-bottom: 1px solid #DDE1EA;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border-bottom: 2px solid #2F80ED;
+    padding: 7px 12px 5px 12px;
+    margin: 0 -0.65rem 0.25rem -0.65rem;
 }
 .moh-header-top {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 8px 24px 6px 24px;
-    border-bottom: 1px solid #EEF0F5;
+    justify-content: space-between;
 }
-.moh-header-top .ministry {
+.logo-row {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    min-width: 145px;
+}
+.logo-box {
+    height: 28px;
+    min-width: 42px;
+    border: 1px solid #D9E2EC;
+    color: #2F80ED;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #F8FAFC;
+}
+.titles {
+    flex: 1;
+    text-align: center;
+}
+.ministry {
+    color: #2F80ED;
+    font-size: 1.52rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+.subtitle-line {
+    color: #2F80ED;
     font-size: 0.82rem;
+    line-height: 1.2;
+}
+.badge-gold {
+    color: #C75B12;
+    font-size: 0.74rem;
     font-weight: 700;
-    color: #1A1A2E;
-    letter-spacing: 0.01em;
-    line-height: 1.25;
-}
-.moh-header-top .subtitle-line {
-    font-size: 0.6rem;
-    color: #6B7280;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-top: 1px;
-}
-.moh-header-top .badge-gold {
-    background: #C8690A;
-    color: #FFFFFF;
-    font-size: 0.58rem;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-    margin-left: auto;
-}
-.moh-header-top .coat {
-    width: 36px;
-    height: 36px;
+    min-width: 145px;
+    text-align: right;
 }
 
-/* ── TAB NAV ROW ─────────────────────────────────────── */
+/* Navigation buttons — compact blue tab style */
+.stButton button {
+    background: #FFFFFF !important;
+    color: #2F80ED !important;
+    border: 1px solid #D9E2EC !important;
+    border-radius: 0 !important;
+    font-size: 0.70rem !important;
+    font-weight: 600 !important;
+    padding: 0.30rem 0.25rem !important;
+    box-shadow: none !important;
+}
+.stButton button:hover {
+    background: #EAF3FF !important;
+    border-color: #2F80ED !important;
+    color: #1B4F9C !important;
+}
+.stButton button[kind="primary"] {
+    background: #EAF3FF !important;
+    border-color: #2F80ED !important;
+    color: #1B4F9C !important;
+    border-bottom: 3px solid #F2994A !important;
+}
+
+/* Nav row container */
 div[data-testid="stHorizontalBlock"]:first-of-type {
-    background: #1A1A2E !important;
+    background: #FFFFFF !important;
     gap: 0 !important;
-    padding: 0 16px !important;
-    margin: 0 !important;
-    border-bottom: 3px solid #C8690A;
+    padding: 0 !important;
+    margin: 0 0 4px 0 !important;
+    border-bottom: 2px solid #D9E2EC;
 }
 div[data-testid="stHorizontalBlock"]:first-of-type > div {
     padding: 0 !important;
     flex: 1 !important;
 }
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button {
-    border-radius: 0 !important;
-    border: none !important;
-    border-bottom: 3px solid transparent !important;
-    margin-bottom: -3px !important;
-    background: transparent !important;
-    color: #9CA3B8 !important;
-    font-size: 0.67rem !important;
-    font-weight: 600 !important;
-    padding: 9px 2px !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    box-shadow: none !important;
-    width: 100% !important;
-}
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,0.06) !important;
-    border-bottom-color: rgba(200,105,10,0.5) !important;
-}
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primary"],
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primaryFormSubmit"] {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,0.1) !important;
-    border-bottom: 3px solid #C8690A !important;
-}
 
-/* ── FILTER STRIP ───────────────────────────────────── */
-.filter-strip {
-    background: #FFFFFF;
-    border-bottom: 1px solid #DDE1EA;
-    padding: 3px 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 0.7rem;
-    color: #6B7280;
-}
-
-/* ── PAGE TITLE ─────────────────────────────────────── */
+/* Page titles */
 .pg-title {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     font-weight: 700;
-    color: #1A1A2E;
-    margin: 10px 24px 1px 24px;
-    border-left: 4px solid #C8690A;
-    padding-left: 10px;
-    line-height: 1.3;
+    color: #2F80ED;
+    margin: 4px 0 0 0;
+    padding: 0;
+    line-height: 1.22;
 }
 .pg-sub {
-    font-size: 0.67rem;
-    color: #6B7280;
-    margin: 0 24px 6px 38px;
-    letter-spacing: 0.02em;
+    font-size: 0.68rem;
+    color: #4F4F4F;
+    margin: 0 0 4px 0;
 }
 
-/* ── KPI CARDS ──────────────────────────────────────── */
+/* KPI tiles */
 .kpi {
     background: #FFFFFF;
-    border-radius: 4px;
-    padding: 10px 12px;
-    border: 1px solid #DDE1EA;
-    border-top: 3px solid var(--kc, #1A1A2E);
+    border-radius: 0;
+    padding: 5px 7px;
+    border: 1px solid #D9E2EC;
+    border-top: 2px solid var(--kc, #2F80ED);
     text-align: center;
-    margin-bottom: 3px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 2px;
+    box-shadow: none;
 }
 .kpi .v {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--kc, #1A1A2E);
-    line-height: 1.1;
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #F2994A;
+    line-height: 1.05;
 }
 .kpi .l {
-    font-size: 0.58rem;
-    color: #6B7280;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-top: 2px;
+    font-size: 0.55rem;
+    color: #2F80ED;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    margin-top: 1px;
 }
 
-/* ── ALERT BOXES ────────────────────────────────────── */
-.box-info {
-    background: #F0F4FF;
-    border-left: 4px solid #3B5BDB;
-    padding: 7px 12px;
-    border-radius: 0 3px 3px 0;
-    font-size: 0.78rem;
-    color: #1A1A2E;
-    margin: 4px 0;
-    line-height: 1.45;
-}
-.box-warn {
-    background: #FFF8F0;
-    border-left: 4px solid #C8690A;
-    padding: 7px 12px;
-    border-radius: 0 3px 3px 0;
-    font-size: 0.77rem;
-    color: #5A2D00;
-    margin: 4px 0;
-}
-.box-ok {
-    background: #F0FBF4;
-    border-left: 4px solid #2B7A3F;
-    padding: 7px 12px;
-    border-radius: 0 3px 3px 0;
-    font-size: 0.77rem;
-    color: #1A3D28;
-    margin: 4px 0;
-}
-.box-err {
-    background: #FFF0F0;
-    border-left: 4px solid #C0392B;
-    padding: 7px 12px;
-    border-radius: 0 3px 3px 0;
-    font-size: 0.77rem;
-    color: #5A0000;
-    margin: 4px 0;
-}
-
-/* ── METRICS ────────────────────────────────────────── */
+/* Streamlit metrics */
 div[data-testid="stMetricValue"] {
     font-size: 1.05rem !important;
-    font-weight: 700 !important;
-    color: #1A1A2E !important;
+    font-weight: 800 !important;
+    color: #F2994A !important;
 }
 div[data-testid="stMetricLabel"] {
-    font-size: 0.58rem !important;
-    color: #6B7280 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 0.60rem !important;
+    color: #2F80ED !important;
 }
-div[data-testid="stMetricDelta"] { font-size: 0.6rem !important; }
+div[data-testid="stMetricDelta"] { font-size: 0.62rem !important; }
 
-/* ── DATA TABLES ────────────────────────────────────── */
-.stDataFrame { border: 1px solid #DDE1EA !important; }
+/* Alert boxes */
+.box-info, .box-warn, .box-ok, .box-err {
+    background: #FFFFFF;
+    border: 1px solid #D9E2EC;
+    border-left: 4px solid #2F80ED;
+    padding: 7px 10px;
+    border-radius: 0;
+    font-size: 0.76rem;
+    color: #222222;
+    margin: 4px 0;
+    line-height: 1.35;
+}
+.box-warn { border-left-color: #F2994A; background: #FFF8F0; }
+.box-ok   { border-left-color: #2D9CDB; background: #F4FBFF; }
+.box-err  { border-left-color: #D94A38; background: #FFF4F2; }
 
-/* ── STEP BADGE ─────────────────────────────────────── */
+/* Section headings */
+h1, h2, h3, h4, h5, h6 { color: #2F80ED !important; }
+h5 { font-size: 0.84rem !important; margin: 0.2rem 0 0.15rem 0 !important; }
+
+/* Forms */
+div[data-testid="stSelectbox"] label,
+div[data-testid="stSlider"] label,
+div[data-testid="stFileUploader"] label {
+    font-size: 0.70rem !important;
+    color: #4F4F4F !important;
+}
+[data-testid="stFileUploader"] {
+    border: 1px dashed #2F80ED !important;
+    border-radius: 0 !important;
+    background: #F8FAFC !important;
+}
+
+/* Data tables */
+.stDataFrame { border: 1px solid #D9E2EC !important; }
+.stDataFrame thead tr th {
+    background: #EAF3FF !important;
+    color: #1B4F9C !important;
+    font-size: 0.70rem !important;
+}
+
+/* Progress bar */
+.stProgress > div > div > div > div { background-color: #F2994A !important; }
+.stProgress > div > div > div { height: 7px !important; background: #EAF3FF !important; }
+
+/* Step badge */
 .step-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: #1A1A2E;
+    width: 18px; height: 18px;
+    border-radius: 0;
+    background: #2F80ED;
     color: white;
     font-size: 0.65rem;
     font-weight: 700;
     margin-right: 5px;
 }
 
-/* ── PROGRESS BAR ───────────────────────────────────── */
-.stProgress > div > div > div > div { background-color: #C8690A !important; }
-.stProgress > div > div > div { height: 6px !important; background: #DDE1EA !important; }
-
-/* ── BUTTONS ────────────────────────────────────────── */
-.stButton button {
-    background: #1A1A2E !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 3px !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
+/* Prediction card */
+.pred-card {
+    border-radius: 0;
+    padding: 12px 14px;
+    margin: 6px 0;
+    background: #EAF3FF;
+    color: #222222;
+    border-left: 5px solid #F2994A;
 }
-.stButton button:hover { background: #2D2D4E !important; }
+.pred-card .county-name { font-size: 1rem; font-weight: 700; }
+.pred-card .ucs-big { font-size: 2rem; font-weight: 800; line-height: 1; color: #F2994A; }
+.pred-card .ucs-sub { font-size: 0.72rem; color: #4F4F4F; }
 
-/* ── SELECTBOX ──────────────────────────────────────── */
-div[data-testid="stSelectbox"] label {
-    font-size: 0.7rem !important;
-    color: #6B7280 !important;
-}
-div[data-testid="stSelectbox"] { margin-bottom: 4px !important; }
-
-/* ── FILE UPLOADER ──────────────────────────────────── */
-[data-testid="stFileUploader"] {
-    border: 2px dashed #9CA3B8 !important;
-    border-radius: 4px !important;
-    background: #FAFBFC !important;
+small, .stCaption {
+    font-size: 0.65rem !important;
+    color: #4F4F4F !important;
 }
 
-/* ── SIDEBAR KPIS (unused but kept for compat) ──────── */
-.sb-kpi { text-align: center; padding: 3px 0; }
-.sb-kpi .v { font-size: 1rem; font-weight: 700; color: #1A1A2E; }
-.sb-kpi .l { font-size: 0.58rem; color: #6B7280; text-transform: uppercase; }
-
-small, .stCaption { font-size: 0.67rem !important; color: #6B7280 !important; }
+/* Hide sidebar */
+section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -759,11 +744,10 @@ if page == "Overview":
         st.plotly_chart(fig_d, use_container_width=True)
 
         st.markdown("##### UCS Map")
-        mf = st.selectbox("Filter", ["All","High (≥70)","Moderate (40–70)","Well Served (<40)"], key="ov_mf", label_visibility="collapsed")
+        mf = st.selectbox("Filter", ["All Counties","Cluster 1 — Underserved (UCS ≥70)","Cluster 2 — Moderately Served (UCS <70)"], key="ov_mf", label_visibility="collapsed")
         mdf = fdf.copy()
-        if mf == "High (≥70)":        mdf = mdf[mdf["UCS"] >= 70]
-        elif mf == "Moderate (40–70)": mdf = mdf[(mdf["UCS"] >= 40) & (mdf["UCS"] < 70)]
-        elif mf == "Well Served (<40)":mdf = mdf[mdf["UCS"] < 40]
+        if mf == "Cluster 1 — Underserved (UCS ≥70)":     mdf = mdf[mdf["UCS"] >= 70]
+        elif mf == "Cluster 2 — Moderately Served (UCS <70)": mdf = mdf[mdf["UCS"] < 70]
 
         if FOLIUM_OK and "lat" in mdf.columns:
             m = build_folium_map(mdf, height=310)
@@ -1207,18 +1191,24 @@ elif page == "ML & SHAP":
             else: box("No significant anomalies detected.", "ok")
 
     with pc:
-        st.markdown("##### UCS Distribution")
-        n_h = len(df[df["UCS"]>=70]); n_m = len(df[(df["UCS"]>=40)&(df["UCS"]<70)]); n_l = len(df[df["UCS"]<40])
-        fig_p = px.pie(
-            pd.DataFrame({"Cat":["High (≥70)","Moderate","Well Served (<40)"],"N":[n_h,n_m,n_l]}),
-            values="N", names="Cat",
-            color_discrete_map={"High (≥70)":COLORS["red"],"Moderate":COLORS["orange"],"Well Served (<40)":COLORS["green"]}
-        )
-        fig_p.update_layout(height=200, margin=dict(l=5,r=5,t=10,b=5),
-            legend=dict(font_size=9), paper_bgcolor="rgba(0,0,0,0)")
-        fig_p.update_traces(textinfo="percent+label", textfont_size=9)
+        st.markdown("##### County Clusters (K-Means k=2)")
+        # Show the 2-cluster solution from the notebook — not 3 UCS bands
+        fig_p = go.Figure(go.Pie(
+            labels=["Cluster 1 — Structurally Underserved (n=8)",
+                    "Cluster 2 — Moderately Served (n=39)"],
+            values=[8, 39], hole=0.52,
+            marker_colors=[COLORS["orange_dark"], COLORS["blue"]],
+            textinfo="percent", textfont_size=9
+        ))
+        fig_p.update_layout(
+            height=200, margin=dict(l=5,r=5,t=10,b=5),
+            showlegend=True,
+            legend=dict(font_size=8, orientation="v", x=0.55, y=0.5),
+            annotations=[dict(text="k=2<br>Sil=0.459", x=0.18, y=0.5,
+                             font_size=8, showarrow=False)],
+            paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_p, use_container_width=True)
-        box(f"**{n_h}** need urgent action · **{n_m}** moderate · **{n_l}** relatively well-served.", "info")
+        box("Cluster 1 (8 counties): Garissa, Mandera, Marsabit, Samburu, Tana River, Turkana, Wajir, West Pokot — all ASAL. Cluster 2 (39 counties): all remaining. Silhouette = 0.459, k=2 confirmed optimal.", "info")
 
 # ─────────────────────────────────────────────────────────────
 # PAGE: KDHS PREDICTOR  ← NEW
