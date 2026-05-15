@@ -1,5 +1,5 @@
 """
-Kenya Health Equity Monitor - Thesis-Accurate Defence Dashboard
+Kenya Health Equity Monitor — Thesis-Accurate Defence Dashboard
 ================================================================
 Author: Cynthia Ngugi | Registration Number: 138725
 Dissertation: Integrating Machine Learning and Spatial Analytics to Identify and Explain Healthcare Access Inequalities in Kenya
@@ -392,33 +392,38 @@ def thesis_fallback_data() -> pd.DataFrame:
 
 @st.cache_data
 def load_main_data() -> pd.DataFrame:
-    """
-    Use the dissertation/Table 4.3 thesis-exact results as the source of truth.
+    """Load analytic county file if available, otherwise use thesis-exact fallback."""
+    for p in ["county_ucs_final.csv", "./county_ucs_final.csv", "../county_ucs_final.csv"]:
+        if os.path.exists(p):
+            loaded = pd.read_csv(p, index_col=0)
+            # Preserve thesis-aligned cluster naming where source columns exist.
+            if "Cluster_label" not in loaded.columns:
+                if "Cluster" in loaded.columns:
+                    loaded["Cluster_label"] = loaded["Cluster"].astype(str).replace({
+                        "0": "Cluster 1: Structurally Underserved",
+                        "1": "Cluster 2: Moderately Served",
+                        "Cluster 1": "Cluster 1: Structurally Underserved",
+                        "Cluster 2": "Cluster 2: Moderately Served",
+                    })
+                else:
+                    # Only as a display fallback; does not recompute thesis findings.
+                    loaded["Cluster_label"] = np.where(
+                        loaded["UCS"] >= 54,
+                        "Cluster 1: Structurally Underserved",
+                        "Cluster 2: Moderately Served",
+                    )
+            if "Anomaly" not in loaded.columns:
+                thesis_anomalies = {"Wajir", "Turkana", "Marsabit", "Mandera", "Garissa"}
+                loaded["Anomaly"] = ["Anomaly" if str(idx) in thesis_anomalies else "Normal" for idx in loaded.index]
+            for county, (lat, lon) in KENYA_COORDS.items():
+                if county in loaded.index:
+                    loaded.loc[county, "lat"] = lat
+                    loaded.loc[county, "lon"] = lon
+            return loaded
+    return thesis_fallback_data()
 
-    This prevents the deployed dashboard from accidentally reading an older
-    county_ucs_final.csv in the working directory and showing values that do
-    not match the thesis/notebook findings.
-    """
-    loaded = thesis_fallback_data()
 
-    # Enforce thesis labels exactly.
-    loaded["Cluster"] = loaded["Cluster"].astype(str)
-    loaded["Cluster_label"] = loaded["Cluster"].replace({
-        "Cluster 1": "Cluster 1: Structurally Underserved",
-        "Cluster 2": "Cluster 2: Moderately Served",
-    })
-
-    thesis_anomalies = {"Wajir", "Turkana", "Marsabit", "Mandera", "Garissa"}
-    loaded["Anomaly"] = ["Anomaly" if county in thesis_anomalies else "Normal" for county in loaded.index]
-
-    # Add coordinates.
-    for county, (lat, lon) in KENYA_COORDS.items():
-        if county in loaded.index:
-            loaded.loc[county, "lat"] = lat
-            loaded.loc[county, "lon"] = lon
-
-    return loaded
-
+@st.cache_data
 def load_shap_data() -> pd.DataFrame:
     for p in ["shap_values.csv", "./shap_values.csv", "../shap_values.csv"]:
         if os.path.exists(p):
@@ -615,12 +620,12 @@ if page == "Overview":
     with right:
         panel_open(COLORS["gold"])
         panel_title("Defence message")
-        finding("<b>Core result:</b> The two-cluster solution separates structurally underserved ASAL counties from the wider county profile.", COLORS["orange"])
-        finding("<b>Cluster 1:</b> Eight counties show a structurally underserved profile driven by access, vulnerability, and disease burden.", COLORS["red"])
-        finding("<b>Cluster 2:</b> Thirty-nine counties show moderate service profiles, although internal variation remains important for planning.", COLORS["blue"])
+        finding("<b>Core result:</b> k = 2 is optimal; it validates an ASAL versus non-ASAL policy distinction.", COLORS["orange"])
+        finding("<b>Cluster 1:</b> 8 structurally underserved ASAL/remote counties.", COLORS["red"])
+        finding("<b>Cluster 2:</b> 39 moderately served counties with internal variation.", COLORS["blue"])
         finding("<b>Dominant driver:</b> Healthcare Access, r = 0.808 and 42.3% XGBoost importance.", COLORS["orange"])
         finding("<b>Important nuance:</b> Immunization Coverage is independent, |r| < 0.08 with other domains.", COLORS["teal"])
-        st.markdown('<div class="small-text">The analytical pathway integrates PCA-based UCS construction, K-means typology discovery, anomaly detection, supervised classification, and SHAP interpretation.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="small-text">Use this dashboard to defend the pathway: PCA-based UCS construction, k-means typology, Isolation Forest anomalies, XGBoost classification, and SHAP interpretation.</div>', unsafe_allow_html=True)
         panel_close()
 
 
@@ -629,9 +634,9 @@ if page == "Overview":
 # ─────────────────────────────────────────────────────────────
 
 elif page == "Map":
-    st.markdown('<p class="pg-title">Spatial Distribution of Healthcare Underservice</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">Geospatial Distribution of UCS</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Spatial inequality is concentrated in northern and north-eastern ASAL counties.</p>', unsafe_allow_html=True)
-    
+
     f1, f2, f3, f4 = st.columns([1.2, 1, 1, 1])
     with f1:
         filt = st.selectbox("Filter", ["All", "Cluster 1 only", "Cluster 2 only", "Anomalies only"], label_visibility="collapsed")
@@ -663,13 +668,12 @@ elif page == "Map":
     with right:
         panel_open(COLORS["red"])
         panel_title("Map interpretation")
-        finding("The highest UCS values are concentrated in northern and north-eastern counties, indicating a strong spatial pattern of structural underservice.", COLORS["red"])
-        finding("The most underserved counties are concentrated in the ASAL region, with Wajir, Turkana, Tana River, Marsabit, and Samburu forming the highest-priority group.", COLORS["orange"])
-        finding("Anomaly detection highlights counties with domain profiles that are extreme even relative to other underserved counties.", COLORS["gold"])
-        show = mdf.sort_values("UCS", ascending=False)[["Rank", "UCS", "Cluster_label", "Anomaly"]].head(10).copy()
-        show = show.rename(columns={"Cluster_label": "Cluster"})
+        finding("High-UCS counties form a near-contiguous band across northern and north-eastern Kenya.", COLORS["red"])
+        finding("All five counties above 90 UCS are Cluster 1 ASAL counties.", COLORS["orange"])
+        finding("Five anomaly counties: Wajir, Turkana, Marsabit, Mandera, and Garissa.", COLORS["gold"])
+        show = mdf.sort_values("UCS", ascending=False)[["UCS", "Cluster", "Anomaly"]].head(10).copy()
         show["UCS"] = show["UCS"].round(2)
-        st.dataframe(show, use_container_width=True, height=255)
+        st.dataframe(show, use_container_width=True, height=220)
         panel_close()
 
 
@@ -678,7 +682,7 @@ elif page == "Map":
 # ─────────────────────────────────────────────────────────────
 
 elif page == "PCA & Clusters":
-    st.markdown('<p class="pg-title">Cluster Validation and County Typologies</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">PCA and K-Means Cluster Validation</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">The thesis and notebook converge on k = 2 as the optimal K-Means solution.</p>', unsafe_allow_html=True)
 
     k1, k2, k3, k4 = st.columns(4)
@@ -741,7 +745,7 @@ elif page == "PCA & Clusters":
 # ─────────────────────────────────────────────────────────────
 
 elif page == "County Deep Dive":
-    st.markdown('<p class="pg-title">County Profile</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">County-Level Drill Down</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Shows UCS rank, cluster, anomaly flag, domain profile, and SHAP-style intervention priority.</p>', unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns([1.5, 1, 1, 1])
@@ -811,7 +815,7 @@ elif page == "County Deep Dive":
 # ─────────────────────────────────────────────────────────────
 
 elif page == "ML & SHAP":
-    st.markdown('<p class="pg-title">Model Interpretation and Intervention Priorities</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">Machine Learning and SHAP Interpretability</p>', unsafe_allow_html=True)
     st.markdown('<p class="pg-sub">Supervised classification is used as secondary explanatory analysis for two-cluster membership.</p>', unsafe_allow_html=True)
 
     k1, k2, k3, k4 = st.columns(4)
@@ -863,8 +867,8 @@ elif page == "ML & SHAP":
 # ─────────────────────────────────────────────────────────────
 
 elif page == "KDHS Predictor":
-    st.markdown('<p class="pg-title">County Data Upload and UCS Assessment</p>', unsafe_allow_html=True)
-    st.markdown('<p class="pg-sub">Upload county-level data, compute domain scores, and generate UCS-based county typologies.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-title">KDHS-Style Data Upload and UCS Prediction</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pg-sub">Reusable demonstration module: upload county-level data, compute domain scores, and classify using thesis-aligned k = 2.</p>', unsafe_allow_html=True)
 
     left, mid, right = st.columns([0.95, 1.1, 0.95])
 
@@ -873,7 +877,7 @@ elif page == "KDHS Predictor":
         panel_title("Upload data")
         uploaded = st.file_uploader("CSV or Excel", type=["csv", "xlsx"], label_visibility="collapsed")
         finding("Expected format: one row per county; first column as county name; numeric indicators as columns.", COLORS["blue"])
-        finding("This module supports application of the UCS framework to future county-level datasets.", COLORS["gold"])
+        finding("This tab is a deployment demo. It does not change the thesis findings shown in the other tabs.", COLORS["gold"])
         panel_close()
 
     raw = None
@@ -889,7 +893,7 @@ elif page == "KDHS Predictor":
         if raw is None:
             preview = df.reset_index()[["County", "UCS", "Cluster", "Anomaly"] + get_domain_cols(df)].head(8)
             st.dataframe(preview, use_container_width=True, height=230)
-            st.markdown('<div class="small-text">No file uploaded. Current UCS county results are shown for reference.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="small-text">No file uploaded. Showing thesis-aligned current UCS structure.</div>', unsafe_allow_html=True)
         else:
             st.dataframe(raw.head(8), use_container_width=True, height=230)
             st.markdown(f'<div class="small-text">Loaded {raw.shape[0]} rows and {raw.shape[1]} columns.</div>', unsafe_allow_html=True)
@@ -928,9 +932,9 @@ elif page == "KDHS Predictor":
             else:
                 finding("Upload at least four numeric columns to compute the four UCS domains.", COLORS["red"])
         else:
-            finding("The uploaded dataset is analysed using the validated UCS methodology developed in this study.", COLORS["green"])
-            finding("Cluster assignment reflects multidimensional similarity across access, vulnerability, immunisation, and disease burden conditions.", COLORS["orange"])
-            finding("The output supports comparative county assessment, planning, and prioritisation.", COLORS["blue"])
+            finding("The live upload uses k = 2, matching the thesis and notebook validation result.", COLORS["green"])
+            finding("Cluster 1 is assigned to the group with the higher mean UCS.", COLORS["orange"])
+            finding("Use this tab only if asked about the dashboard deployment layer.", COLORS["blue"])
         panel_close()
 
 
