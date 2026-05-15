@@ -189,37 +189,51 @@ div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primar
   border-bottom:3px solid #C69D1A!important;
 }
 
-/* ── KPI TILES ──────────────────────────────────────────── */
-.kpi{
-  background:#FFFFFF;border-radius:3px;padding:8px 10px;
-  border:1px solid #D0DCF5;border-top:3px solid var(--kc,#2F80ED);
-  text-align:center;margin-bottom:3px;
-  box-shadow:0 1px 3px rgba(43,80,180,.06);
-}
-.kpi .v{font-size:1.15rem;font-weight:800;color:#E07B12;line-height:1.05;}
-.kpi .l{font-size:.56rem;color:#3A5FC0;letter-spacing:.01em;margin-top:2px;}
+/* ── KPI TILES - handled by inline styles in kpi() */
 
 /* ── METRICS ────────────────────────────────────────────── */
 div[data-testid="stMetricValue"]{font-size:1.05rem!important;font-weight:800!important;color:#E07B12!important;}
-div[data-testid="stMetricLabel"]{font-size:.58rem!important;color:#3A5FC0!important;}
+div[data-testid="stMetricLabel"]{font-size:.58rem!important;color:#1B3F8C!important;font-weight:600!important;}
 
 /* ── ALERT BOXES ────────────────────────────────────────── */
+.box-info,.box-warn,.box-ok,.box-err{
+  display:block!important;
+  padding:10px 14px!important;
+  border-radius:4px!important;
+  font-size:.80rem!important;
+  font-family:'Inter','Segoe UI',sans-serif!important;
+  line-height:1.55!important;
+  margin:6px 0!important;
+}
 .box-info{
-  background:#F0F5FF;border:1px solid #C5D5F5;border-left:4px solid #2F80ED;
-  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#1A2E5C;margin:5px 0;line-height:1.5;
+  background:#EEF4FF!important;
+  border:1px solid #BACBF5!important;
+  border-left:4px solid #2F80ED!important;
+  color:#132050!important;
 }
 .box-warn{
-  background:#FFFBEC;border:1px solid #E8D890;border-left:4px solid #C69D1A;
-  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#4A3800;margin:5px 0;line-height:1.5;
+  background:#FFFAEB!important;
+  border:1px solid #DFD080!important;
+  border-left:4px solid #B8960A!important;
+  color:#3D2E00!important;
 }
 .box-ok{
-  background:#F0FBF4;border:1px solid #A8D8B8;border-left:4px solid #1A8040;
-  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#0E3A20;margin:5px 0;line-height:1.5;
+  background:#EDFBF2!important;
+  border:1px solid #95D4A8!important;
+  border-left:4px solid #1A8040!important;
+  color:#0A2E18!important;
 }
 .box-err{
-  background:#FFF2F2;border:1px solid #F5B8B8;border-left:4px solid #C8321E;
-  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#4A0E0E;margin:5px 0;line-height:1.5;
+  background:#FFF0EF!important;
+  border:1px solid #F0AAAA!important;
+  border-left:4px solid #C0281A!important;
+  color:#3D0808!important;
 }
+/* Ensure ALL text inside boxes inherits the right colour */
+.box-info *,.box-info b,.box-info a{ color:#132050!important; }
+.box-warn *,.box-warn b,.box-warn a{ color:#3D2E00!important; }
+.box-ok   *,.box-ok   b,.box-ok   a{ color:#0A2E18!important; }
+.box-err  *,.box-err  b,.box-err  a{ color:#3D0808!important; }
 
 /* ── HEADINGS ───────────────────────────────────────────── */
 h1,h2,h3,h4,h5,h6{color:#1B3F8C!important;}
@@ -254,7 +268,7 @@ div[data-testid="stSelectbox"]{margin-bottom:3px!important;}
 /* ── SIDEBAR HIDDEN ─────────────────────────────────────── */
 section[data-testid="stSidebar"]{display:none!important;}
 
-small,.stCaption{font-size:.65rem!important;color:#555!important;}
+small,.stCaption{font-size:.65rem!important;color:#333333!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -296,11 +310,38 @@ st.markdown(f'<div style="display:flex;margin:0 -.7rem 2px -.7rem">{bar}</div>',
             unsafe_allow_html=True)
 
 def kpi(val, label, color=C["blue"]):
-    st.markdown(f'<div class="kpi" style="--kc:{color}"><div class="v">{val}</div>'
-                f'<div class="l">{label}</div></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="background:#FFFFFF;border:1px solid #D0DCF5;'
+        f'border-top:3px solid {color};border-radius:3px;'
+        f'padding:8px 10px;text-align:center;margin-bottom:3px;">'
+        f'<div style="font-size:1.12rem;font-weight:800;color:#E07B12;line-height:1.05;">{val}</div>'
+        f'<div style="font-size:0.56rem;color:#1B3F8C;letter-spacing:0.01em;'
+        f'margin-top:2px;font-weight:600;">{label}</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
 def box(text, kind="info"):
-    st.markdown(f'<div class="box-{kind}">{text}</div>', unsafe_allow_html=True)
+    STYLES = {
+        "info": ("background:#EEF4FF","border:1px solid #BACBF5",
+                 "border-left:4px solid #2F80ED","color:#132050"),
+        "warn": ("background:#FFFAEB","border:1px solid #DFD080",
+                 "border-left:4px solid #B8960A","color:#3D2E00"),
+        "ok":   ("background:#EDFBF2","border:1px solid #95D4A8",
+                 "border-left:4px solid #1A8040","color:#0A2E18"),
+        "err":  ("background:#FFF0EF","border:1px solid #F0AAAA",
+                 "border-left:4px solid #C0281A","color:#3D0808"),
+    }
+    bg, bd, bl, col = STYLES.get(kind, STYLES["info"])
+    style = (f"{bg};{bd};{bl};{col};"
+             "padding:10px 14px;border-radius:4px;"
+             "font-size:0.80rem;font-family:'Inter','Segoe UI',sans-serif;"
+             "line-height:1.55;margin:6px 0;display:block;")
+    # Inject a <span> inside so text colour is forced on inline elements too
+    st.markdown(
+        f'<div style="{style}"><span style="color:inherit;">{text}</span></div>',
+        unsafe_allow_html=True
+    )
 
 def cl_color(c): return C["cl1"] if c=="Cluster 1" else C["cl2"]
 
