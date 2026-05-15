@@ -3,17 +3,7 @@ kenya_health.py — Kenya Health Gap Dashboard
 =============================================
 Cynthia Ngugi | Reg. 138725 | MSc Data Science | Strathmore University | March 2026
 
-All figures are sourced directly from the submitted dissertation:
-  Table 4.3  — UCS rankings, all 47 counties
-  Table 4.5  — Domain inter-correlation matrix
-  Table 4.6  — Domain importance (r with UCS)
-  Table 4.7  — PCA transparency report
-  Table 4.8  — K-Means validation metrics
-  Table 4.9  — Cluster mean domain profiles
-  Table 4.10 — Classification model performance
-  Table 4.11 — XGBoost feature importance
-  Table 4.12 — SHAP force plot, Wajir county
-  Section 4.7.4 — Isolation Forest anomaly scores
+All figures are sourced directly from the submitted dissertation:— UCS rankings, all 47 counties— Domain inter-correlation matrix— Domain importance (r with UCS)— PCA transparency report— K-Means validation metrics— Cluster mean domain profiles— Classification model performance— XGBoost feature importance— SHAP force plot, Wajir county— Isolation Forest anomaly scores
 
 Run: streamlit run kenya_health.py
 """
@@ -150,42 +140,121 @@ df = build_df()
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-html,body,[class*="css"]{font-family:'Inter','Segoe UI',sans-serif;color:#1A1A2E;background:#FFFFFF;}
+html,body,[class*="css"]{font-family:'Inter','Segoe UI',sans-serif;color:#222222;background:#FFFFFF;}
 #MainMenu,footer,header{visibility:hidden;}
 .block-container{padding-top:0!important;padding-bottom:.4rem!important;padding-left:.7rem!important;padding-right:.7rem!important;max-width:100%!important;}
 div[data-testid="stVerticalBlock"]>div{gap:.2rem!important;}
 .element-container{margin-bottom:.1rem!important;}
 .stPlotlyChart{margin-bottom:0!important;}
-hr{margin:.3rem 0!important;border-color:#D0D8F0!important;}
-.moh-header{background:#FFFFFF;border-bottom:2px solid #2F80ED;padding:7px 14px 5px 14px;margin:0 -.7rem .2rem -.7rem;display:flex;align-items:center;justify-content:space-between;}
+hr{margin:.3rem 0!important;border-color:#E0E7FF!important;}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+.moh-header{
+  background:#FFFFFF;border-bottom:2px solid #2F80ED;
+  padding:7px 14px 5px 14px;margin:0 -.7rem .2rem -.7rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
 .moh-logo{display:flex;gap:6px;align-items:center;min-width:130px;}
-.moh-badge{height:26px;min-width:40px;border:1px solid #D0D8F0;color:#2F80ED;display:inline-flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;background:#EAF0FF;padding:0 6px;}
+.moh-badge{
+  height:26px;min-width:40px;border:1px solid #BFD0F5;
+  color:#2F80ED;display:inline-flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:800;background:#EEF4FF;padding:0 6px;
+}
 .moh-title{flex:1;text-align:center;}
-.moh-title .ministry{color:#2F80ED;font-size:1.28rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;line-height:1.1;}
-.moh-title .subtitle{color:#2F80ED;font-size:.72rem;}
+.moh-title .ministry{color:#1B4DB5;font-size:1.28rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;line-height:1.1;}
+.moh-title .subtitle{color:#4A76D0;font-size:.72rem;}
 .moh-meta{color:#C69D1A;font-size:.7rem;font-weight:700;min-width:130px;text-align:right;}
-div[data-testid="stHorizontalBlock"]:first-of-type{background:#1E3888!important;gap:0!important;padding:0 10px!important;margin:0 -.7rem 0 -.7rem!important;border-bottom:3px solid #C69D1A;}
+
+/* ── NAV TABS ───────────────────────────────────────────── */
+div[data-testid="stHorizontalBlock"]:first-of-type{
+  background:#1B3F8C!important;gap:0!important;
+  padding:0 10px!important;margin:0 -.7rem 0 -.7rem!important;
+  border-bottom:3px solid #C69D1A;
+}
 div[data-testid="stHorizontalBlock"]:first-of-type>div{padding:0!important;flex:1!important;}
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button{border-radius:0!important;border:none!important;border-bottom:3px solid transparent!important;margin-bottom:-3px!important;background:transparent!important;color:#8BA4D4!important;font-size:.65rem!important;font-weight:600!important;padding:8px 2px!important;letter-spacing:.05em!important;text-transform:uppercase!important;box-shadow:none!important;width:100%!important;}
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button:hover{color:#FFFFFF!important;background:rgba(255,255,255,.07)!important;border-bottom-color:rgba(198,157,26,.5)!important;}
-div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primary"]{color:#FFFFFF!important;background:rgba(255,255,255,.12)!important;border-bottom:3px solid #C69D1A!important;}
-.kpi{background:#FFFFFF;border-radius:0;padding:6px 10px;border:1px solid #D0D8F0;border-top:2px solid var(--kc,#2F80ED);text-align:center;margin-bottom:2px;}
-.kpi .v{font-size:1.12rem;font-weight:800;color:#F2994A;line-height:1.05;}
-.kpi .l{font-size:.56rem;color:#2F80ED;letter-spacing:.01em;margin-top:1px;}
-div[data-testid="stMetricValue"]{font-size:1.05rem!important;font-weight:800!important;color:#F2994A!important;}
-div[data-testid="stMetricLabel"]{font-size:.58rem!important;color:#2F80ED!important;}
-.box-info,.box-warn,.box-ok,.box-err{background:#FFFFFF;border:1px solid #D0D8F0;border-left:4px solid #2F80ED;padding:7px 10px;border-radius:0;font-size:.77rem;color:#1A1A2E;margin:4px 0;line-height:1.4;}
-.box-warn{border-left-color:#C69D1A;background:#FFFBEA;}
-.box-ok{border-left-color:#1A6B2A;background:#F0FBF4;}
-.box-err{border-left-color:#C8321E;background:#FFF4F2;}
-.stDataFrame{border:1px solid #D0D8F0!important;}
-.stDataFrame thead tr th{background:#EAF0FF!important;color:#1E3888!important;font-size:.68rem!important;}
-div[data-testid="stSelectbox"] label{font-size:.68rem!important;color:#4F4F4F!important;}
-.stProgress>div>div>div>div{background-color:#F2994A!important;}
-.stProgress>div>div>div{height:6px!important;background:#EAF0FF!important;}
+div[data-testid="stHorizontalBlock"]:first-of-type .stButton button{
+  border-radius:0!important;border:none!important;
+  border-bottom:3px solid transparent!important;margin-bottom:-3px!important;
+  background:transparent!important;color:#A8C0EE!important;
+  font-size:.65rem!important;font-weight:600!important;
+  padding:9px 2px!important;letter-spacing:.05em!important;
+  text-transform:uppercase!important;box-shadow:none!important;width:100%!important;
+}
+div[data-testid="stHorizontalBlock"]:first-of-type .stButton button:hover{
+  color:#FFFFFF!important;background:rgba(255,255,255,.08)!important;
+  border-bottom-color:rgba(198,157,26,.5)!important;
+}
+div[data-testid="stHorizontalBlock"]:first-of-type .stButton button[kind="primary"]{
+  color:#FFFFFF!important;background:rgba(255,255,255,.14)!important;
+  border-bottom:3px solid #C69D1A!important;
+}
+
+/* ── KPI TILES ──────────────────────────────────────────── */
+.kpi{
+  background:#FFFFFF;border-radius:3px;padding:8px 10px;
+  border:1px solid #D0DCF5;border-top:3px solid var(--kc,#2F80ED);
+  text-align:center;margin-bottom:3px;
+  box-shadow:0 1px 3px rgba(43,80,180,.06);
+}
+.kpi .v{font-size:1.15rem;font-weight:800;color:#E07B12;line-height:1.05;}
+.kpi .l{font-size:.56rem;color:#3A5FC0;letter-spacing:.01em;margin-top:2px;}
+
+/* ── METRICS ────────────────────────────────────────────── */
+div[data-testid="stMetricValue"]{font-size:1.05rem!important;font-weight:800!important;color:#E07B12!important;}
+div[data-testid="stMetricLabel"]{font-size:.58rem!important;color:#3A5FC0!important;}
+
+/* ── ALERT BOXES ────────────────────────────────────────── */
+.box-info{
+  background:#F0F5FF;border:1px solid #C5D5F5;border-left:4px solid #2F80ED;
+  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#1A2E5C;margin:5px 0;line-height:1.5;
+}
+.box-warn{
+  background:#FFFBEC;border:1px solid #E8D890;border-left:4px solid #C69D1A;
+  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#4A3800;margin:5px 0;line-height:1.5;
+}
+.box-ok{
+  background:#F0FBF4;border:1px solid #A8D8B8;border-left:4px solid #1A8040;
+  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#0E3A20;margin:5px 0;line-height:1.5;
+}
+.box-err{
+  background:#FFF2F2;border:1px solid #F5B8B8;border-left:4px solid #C8321E;
+  padding:8px 12px;border-radius:3px;font-size:.79rem;color:#4A0E0E;margin:5px 0;line-height:1.5;
+}
+
+/* ── HEADINGS ───────────────────────────────────────────── */
+h1,h2,h3,h4,h5,h6{color:#1B3F8C!important;}
+h5{font-size:.84rem!important;margin:.2rem 0 .12rem 0!important;font-weight:700!important;}
+
+/* ── TABLES ─────────────────────────────────────────────── */
+.stDataFrame{border:1px solid #D0DCF5!important;}
+.stDataFrame thead tr th{background:#EEF3FF!important;color:#1B3F8C!important;font-size:.68rem!important;}
+.stDataFrame tbody tr td{font-size:.72rem!important;color:#222222!important;}
+
+/* ── SELECTBOX ──────────────────────────────────────────── */
+div[data-testid="stSelectbox"] label{font-size:.68rem!important;color:#444!important;}
+div[data-testid="stSelectbox"]{margin-bottom:3px!important;}
+
+/* ── PROGRESS ───────────────────────────────────────────── */
+.stProgress>div>div>div>div{background-color:#E07B12!important;}
+.stProgress>div>div>div{height:6px!important;background:#EEF3FF!important;}
+
+/* ── BUTTONS ────────────────────────────────────────────── */
+.stButton button{
+  background:#1B3F8C!important;color:white!important;
+  border:none!important;border-radius:3px!important;
+  font-size:.78rem!important;font-weight:600!important;
+}
+.stButton button:hover{background:#2F80ED!important;}
+
+/* ── FILE UPLOADER ──────────────────────────────────────── */
+[data-testid="stFileUploader"]{
+  border:1px dashed #2F80ED!important;border-radius:4px!important;background:#F8FAFF!important;
+}
+
+/* ── SIDEBAR HIDDEN ─────────────────────────────────────── */
 section[data-testid="stSidebar"]{display:none!important;}
-small,.stCaption{font-size:.65rem!important;color:#4F4F4F!important;}
-h5{font-size:.82rem!important;margin:.15rem 0 .1rem 0!important;color:#1E3888!important;}
+
+small,.stCaption{font-size:.65rem!important;color:#555!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -278,7 +347,7 @@ if page == "Overview":
                 plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig2,use_container_width=True)
 
-        st.markdown("##### Domain Importance — r with UCS (Table 4.6)")
+        st.markdown("##### Domain Importance — r with UCS")
         di = pd.DataFrame({
             "Domain":   ["Healthcare Access (HAI)","Disease Burden (DBI)",
                          "Population Vulnerability (PVI)","Immunisation Coverage (ICI)"],
@@ -295,12 +364,12 @@ if page == "Overview":
             yaxis_tickfont_size=8,
             plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_d,use_container_width=True)
-        st.caption("ICI r=0.068 — operationally independent of all other domains (Table 4.5: "
-                   "ICI–HAI r=0.073, ICI–PVI r=0.043, ICI–DBI r=−0.044). "
-                   "ICI r²=0.005 explains <1% of UCS variance. Source: Tables 4.5–4.6.")
+        st.caption("ICI r=0.068 — operationally independent of all other domains. "
+                   "ICI-HAI r=0.073, ICI-PVI r=0.043, ICI-DBI r=-0.044. "
+                   "ICI explains <1% of UCS variance (r2=0.005).")
 
     with right:
-        st.markdown("##### K-Means — k=2 Optimal (Table 4.8)")
+        st.markdown("##### K-Means — k=2 Optimal")
         fig_c = go.Figure(go.Pie(
             labels=["Cluster 1 — Structurally Underserved (n=8)",
                     "Cluster 2 — Moderately Served (n=39)"],
@@ -314,7 +383,7 @@ if page == "Overview":
             paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_c,use_container_width=True)
         st.caption("Silhouette=0.4595, Davies-Bouldin=0.612, Calinski-Harabasz=41.3 — "
-                   "all favour k=2 (Table 4.8). Silhouette drops 0.46→0.16 at k=3.")
+                   "all favour k=2. Silhouette drops 0.46→0.16 at k=3.")
 
         st.markdown("##### UCS Map — 47 Counties")
         mf = st.selectbox("Filter",["All Counties",
@@ -358,8 +427,7 @@ if page == "Overview":
     box("Five anomaly-flagged counties (Wajir, Turkana, Marsabit, Mandera, Garissa) are all "
         "Cluster 1 ASAL counties. Garissa (rank 20, UCS 54.46) is the most instructive: "
         "moderate composite score yet the 2nd most anomalous county (IF score −0.096), "
-        "flagged for disproportionately high HAI relative to PVI and DBI. "
-        "Source: Table 4.3 and Section 4.7.4.", "info")
+        "flagged for disproportionately high HAI relative to PVI and DBI.", "info")
 
 # ── MAP ───────────────────────────────────────────────────────────────────────
 elif page == "Map":
@@ -407,15 +475,14 @@ elif page == "Map":
 | Orange border | Isolation Forest anomaly | 5 | — |
 """)
     with cb:
-        box("Cluster 1 (Table 4.3): Wajir · Turkana · Tana River · Marsabit · "
+        box("Cluster 1: Wajir · Turkana · Tana River · Marsabit · "
             "Samburu · Mandera · West Pokot · Garissa. All ASAL. "
-            "HDBSCAN robustness check confirms this partition (Section 4.7.3).", "info")
+            "HDBSCAN robustness check confirms this partition.", "info")
 
 # ── UCS RANKINGS ──────────────────────────────────────────────────────────────
 elif page == "UCS Rankings":
-    st.markdown("##### UCS Rankings — All 47 Counties (Table 4.3)")
-    st.caption("Source: Table 4.3, dissertation. Higher UCS = more underserved. "
-               "Red = Cluster 1 ASAL. Blue = Cluster 2. ▲ = anomaly.")
+    st.markdown("##### UCS Rankings — All 47 Counties")
+    st.caption("Higher UCS = more underserved. Red = Cluster 1 ASAL. Blue = Cluster 2. Triangle = anomaly.")
 
     sdf = df.sort_values("UCS",ascending=False).reset_index()
     sdf["Label"] = sdf.apply(lambda r: f"{r['UCS']:.2f}"+(" ▲" if r["Anomaly"]=="Anomaly" else ""),axis=1)
@@ -437,13 +504,13 @@ elif page == "UCS Rankings":
 
 # ── CLUSTERING ────────────────────────────────────────────────────────────────
 elif page == "Clustering":
-    st.markdown("##### K-Means Clustering — k=2 Optimal (Table 4.8)")
+    st.markdown("##### K-Means Clustering — k=2 Optimal")
     st.caption("All three internal validation metrics converge on k=2. "
                "Silhouette drops 0.4595→0.1554 at k=3 — a decisive break.")
 
     c1,c2 = st.columns(2)
     with c1:
-        # Exact Table 4.8 values
+        # Exactvalues
         k_vals=[2,3,4,5,6,7,8,9]
         sil=[0.4595,0.1554,0.1669,0.1845,0.2031,0.1592,0.1559,0.1541]
         db= [0.612, 1.201, 1.188, 1.143, 1.097, 1.134, 1.152, 1.163]
@@ -464,17 +531,17 @@ elif page == "Clustering":
             "Davies-Bouldin":db,"Calinski-Harabasz":ch}).set_index("k")
         st.dataframe(metric_df,use_container_width=True,height=240)
         st.caption("k=2: Silhouette=0.4595 (max) · Davies-Bouldin=0.612 (min) · "
-                   "Calinski-Harabasz=41.3 (max). Source: Table 4.8.")
+                   "Calinski-Harabasz=41.3 (max).")
 
     with c2:
         box("<b>Cluster 1 — Structurally Underserved (n=8)</b><br>"
             "Wajir · Turkana · Tana River · Marsabit · Samburu · Mandera · West Pokot · Garissa<br>"
             "All ASAL counties. UCS range: 54.46–100.00.<br>"
-            "Profile (Table 4.9): High HAI · High PVI · High DBI · Variable ICI.","err")
+            "Profile: High HAI · High PVI · High DBI · Variable ICI.","err")
         box("<b>Cluster 2 — Moderately Served (n=39)</b><br>"
             "All remaining counties. Low–Moderate HAI, PVI, DBI · Moderate ICI.<br>"
             "Internal range: Kilifi (89.23) to Nairobi (0.00).","ok")
-        box("<b>HDBSCAN Robustness Check (Section 4.7.3)</b><br>"
+        box("<b>HDBSCAN Robustness Check</b><br>"
             "Applied to the same standardised sub-domain feature space "
             "(min_cluster_size=5, min_samples=3). The 8 counties assigned to Cluster 1 "
             "by K-Means were grouped identically by HDBSCAN. "
@@ -495,9 +562,9 @@ elif page == "Clustering":
 
 # ── ANOMALY DETECTION ─────────────────────────────────────────────────────────
 elif page == "Anomaly Detection":
-    st.markdown("##### Isolation Forest Anomaly Detection (Section 4.7.4)")
-    st.caption("Five counties flagged. Negative score = more anomalous. "
-               "Source: Section 4.7.4, dissertation.")
+    st.markdown("##### Isolation Forest Anomaly Detection")
+    st.caption("Five counties flagged. Negative IF score = more anomalous. Garissa (rank 20) is the key case.")
+
 
     anom_df = pd.DataFrame({
         "County":  ["Wajir","Turkana","Marsabit","Mandera","Garissa"],
@@ -506,7 +573,7 @@ elif page == "Anomaly Detection":
         "Cluster": ["C1","C1","C1","C1","C1"],
         "IF_score":[-0.047, -0.006,   -0.021,    -0.110,   -0.096],
         "Key observation":[
-            "HAI dominant. SHAP +2.34 (Table 4.12). Net SHAP = +5.54, highest of any county.",
+            "HAI dominant. SHAP +2.34. Net SHAP = +5.54, highest of any county.",
             "High HAI and DBI. Moderate PVI relative to severe access deficit.",
             "Extreme PVI — poverty and WASH are the primary lever.",
             "Most extreme IF score (−0.110). Distinct domain imbalance from Wajir/Turkana.",
@@ -543,7 +610,7 @@ elif page == "Anomaly Detection":
         for _,row in anom_df.iterrows():
             box(f"<b>{row['County']}</b> — UCS {row['UCS']:.2f} | Rank {row['Rank']} | "
                 f"IF score {row['IF_score']}<br>{row['Key observation']}","warn")
-        box("<b>Why Garissa matters (Section 4.7.4):</b><br>"
+        box("<b>Why Garissa matters:</b><br>"
             "UCS 54.46 (rank 20) — any top-10 targeting cutoff excludes it. "
             "Yet Isolation Forest assigns it the 2nd most extreme score (−0.096) "
             "because its domain combination — disproportionately high HAI vs PVI and DBI — "
@@ -552,14 +619,13 @@ elif page == "Anomaly Detection":
 
 # ── CLASSIFICATION & SHAP ─────────────────────────────────────────────────────
 elif page == "Classification & SHAP":
-    st.markdown("##### Supervised Classification and SHAP Interpretation (Tables 4.10–4.12)")
-    st.caption("XGBoost CV AUC-ROC = 0.84 meets pre-specified criterion ≥ 0.80. "
-               "Source: Tables 4.10, 4.11, 4.12, dissertation.")
+    st.markdown("##### Supervised Classification and SHAP Interpretation")
+    st.caption("XGBoost CV AUC-ROC = 0.84 meets pre-specified criterion ≥ 0.80. ")
 
     r1l,r1r = st.columns(2)
 
     with r1l:
-        st.markdown("##### Model Performance (Table 4.10)")
+        st.markdown("##### Model Performance")
         mdf2 = pd.DataFrame({
             "Model":    ["XGBoost","Gradient Boosting","Random Forest","Logistic Regression"],
             "CV AUC":   [0.84, 0.82, 0.81, 0.75],
@@ -579,10 +645,10 @@ elif page == "Classification & SHAP":
         st.plotly_chart(fig_m,use_container_width=True)
         box("XGBoost 0.84 meets the criterion. Gap vs Logistic Regression (0.84 vs 0.75) "
             "confirms non-linear domain–cluster relationships, justifying ensemble methods "
-            "(Table 4.10).","ok")
+            ".","ok")
 
     with r1r:
-        st.markdown("##### XGBoost Feature Importance (Table 4.11)")
+        st.markdown("##### XGBoost Feature Importance")
         fi = pd.DataFrame({
             "Domain": ["Healthcare Access (HAI)","Disease Burden (DBI)",
                        "Population Vulnerability (PVI)","Immunisation Coverage (ICI)"],
@@ -598,11 +664,11 @@ elif page == "Classification & SHAP":
             yaxis_tickfont_size=9,
             plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_f,use_container_width=True)
-        box("HAI dominates (42.3%). ICI = 3.9% — consistent with r²=0.005 (Table 4.6). "
+        box("HAI dominates (42.3%). ICI = 3.9% — consistent with r²=0.005. "
             "Both methods confirm the same hierarchy: HAI > DBI > PVI >> ICI.","info")
 
     st.markdown("---")
-    st.markdown("##### SHAP Force Plot: Wajir County (UCS = 100.00) — Table 4.12")
+    st.markdown("##### SHAP Force Plot: Wajir County (UCS = 100.00) —")
     shap_df_w = pd.DataFrame({
         "Domain":    ["Healthcare Access (HAI)","Disease Burden (DBI)",
                       "Population Vulnerability (PVI)","Immunisation Coverage (ICI)"],
@@ -625,10 +691,9 @@ elif page == "Classification & SHAP":
             yaxis_title="",yaxis_tickfont_size=9,
             plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_sh,use_container_width=True)
-        st.caption("Net SHAP = +5.54 — highest of any county. Source: Table 4.12.")
-
+        st.caption("Net SHAP = +5.54 — highest of any county.")
     with sr:
-        st.markdown("##### Intervention Priority (Table 4.12)")
+        st.markdown("##### Intervention Priority")
         for _,row in shap_df_w.iterrows():
             box(f"<b>{row['Priority']}:</b> {row['Domain']}<br>"
                 f"SHAP = {row['SHAP']:+.2f}  {row['Direction']}",
@@ -638,20 +703,19 @@ elif page == "Classification & SHAP":
             "Net SHAP +5.54 remains the highest of any county.","info")
 
     st.markdown("---")
-    st.markdown("##### Most Significant Finding: Independence of ICI (Section 4.5.2 & 5.6)")
+    st.markdown("##### Key Insight: Independence of Immunisation Coverage")
     box("<b>ICI r with UCS = 0.068 · r² = 0.005 · CV weight = 0.0028 · XGBoost importance = 3.9%</b><br>"
-        "Domain inter-correlations (Table 4.5): ICI–HAI r=0.073, ICI–PVI r=0.043, ICI–DBI r=−0.044. "
+        "Domain inter-correlations: ICI–HAI r=0.073, ICI–PVI r=0.043, ICI–DBI r=−0.044. "
         "All |r| < 0.08. A county can achieve high immunisation coverage whilst remaining severely "
         "underserved on healthcare access, vulnerability, and disease burden. "
         "Tana River (rank 3, UCS 95.38): its adequate immunisation coverage is entirely invisible as "
-        "an indicator of its compound deprivation under single-indicator monitoring. "
-        "Source: Tables 4.5, 4.6, 4.11, 4.12 and Section 5.6.","err")
+        "an indicator of its compound deprivation under single-indicator monitoring. ")
 
 # ── KDHS PREDICTOR ────────────────────────────────────────────────────────────
 elif page == "KDHS Predictor":
     st.markdown("##### KDHS Raw Data Predictor")
     st.caption("Upload a county-level KDHS CSV → auto-map to domains → compute domain scores → "
-               "predict UCS using CV weighting (dissertation methodology, Section 3.6.3).")
+               "predict UCS using CV weighting (dissertation methodology,).")
 
     s1,s2,s3,s4 = st.columns(4)
     with s1: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">1 — Upload CSV</span>',unsafe_allow_html=True)
@@ -739,44 +803,114 @@ elif page == "KDHS Predictor":
         if unmapped:
             box(f"{len(unmapped)} columns not mapped and will be excluded.","warn")
 
-        if st.button("Compute UCS Predictions",type="primary"):
-            with st.spinner("Computing using CV weighting (Section 3.6.3)…"):
-                try:
-                    domain_scores = {}
-                    for dom,cols in auto_map.items():
-                        if not cols:
-                            domain_scores[dom] = pd.Series(np.nan,index=raw_df.index); continue
-                        sub = raw_df[cols].copy().apply(pd.to_numeric,errors="coerce")
-                        sub = sub.fillna(sub.median())
-                        good = ["immuniz","vaccine","bcg","dpt","polio","measles",
-                                "vitamin","insur","skilled","antenatal"]
-                        for c in cols:
-                            if any(kw in c.lower() for kw in good):
-                                sub[c] = 100-sub[c].clip(0,100) if sub[c].max()<=100 else -sub[c]
-                        if len(cols)==1 or not SKLEARN_OK:
-                            score = sub.iloc[:,0]
-                        else:
-                            try:
-                                Xs = StandardScaler().fit_transform(sub)
-                                score = pd.Series(PCA(n_components=1).fit_transform(Xs).ravel(),
-                                                  index=raw_df.index)
-                            except Exception:
-                                score = sub.mean(axis=1)
-                        mn,mx = score.min(),score.max()
-                        domain_scores[dom] = ((score-mn)/(mx-mn)*100
-                                              if mx>mn else pd.Series(50.0,index=raw_df.index))
+        # Detect whether file already has pre-computed domain scores
+        PRECOMP_COLS = {
+            "Healthcare Access Index":        "Healthcare Access Index",
+            "Population Vulnerability Index": "Population Vulnerability Index",
+            "Immunization Coverage Index":    "Immunization Coverage Index",
+            "Disease Burden Index":           "Disease Burden Index",
+        }
+        has_precomp = all(d in raw_df.columns for d in PRECOMP_COLS.values())
+        has_ucs_col = "UCS" in raw_df.columns
 
-                    ds = pd.DataFrame(domain_scores)
-                    cv_wts = {}
-                    for d in KDHS_KWS:
-                        s = ds[d].dropna(); mu = s.mean()
-                        cv_wts[d] = (s.std()/abs(mu)) if mu!=0 else 0.0
-                    total_cv = sum(cv_wts.values())
-                    wts = {d: cv_wts[d]/total_cv if total_cv>0 else 0.25 for d in KDHS_KWS}
-                    raw_ucs = sum(ds[d]*wts[d] for d in KDHS_KWS)
-                    mn,mx = raw_ucs.min(),raw_ucs.max()
-                    ds["UCS"] = (raw_ucs-mn)/(mx-mn)*100 if mx>mn else raw_ucs
-                    ds["Rank"] = ds["UCS"].rank(ascending=False).astype(int)
+        if has_precomp:
+            box("Pre-computed domain scores detected — reading directly from your file.", "ok")
+        else:
+            mc1,mc2,mc3,mc4 = st.columns(4)
+            for mcol,dom in zip([mc1,mc2,mc3,mc4],KDHS_KWS.keys()):
+                with mcol: kpi(len(auto_map[dom]),dom.replace(" Index",""),C["blue"])
+            unmapped = [c for c in raw_df.columns
+                        if not any(c in v for v in auto_map.values())
+                        and c not in list(PRECOMP_COLS.values())
+                        + ["UCS","Cluster","Cluster_label","HDBSCAN_Cluster",
+                           "Anomaly","Anomaly_score","Predicted_Anomaly",
+                           "Predicted_Anomaly_label"]]
+            if unmapped:
+                box(f"{len(unmapped)} columns not mapped and will be excluded.", "warn")
+
+        if st.button("Load and Score Counties", type="primary"):
+            with st.spinner("Processing your data…"):
+                try:
+                    if has_precomp:
+                        # Use the pre-computed domain columns directly
+                        ds = pd.DataFrame(index=raw_df.index)
+                        for dest, src_col in PRECOMP_COLS.items():
+                            ds[dest] = pd.to_numeric(raw_df[src_col], errors="coerce")
+
+                        if has_ucs_col:
+                            ds["UCS"] = pd.to_numeric(raw_df["UCS"], errors="coerce")
+                        else:
+                            # Recompute UCS from domain scores using CV weighting
+                            cv_wts = {}
+                            for d in PRECOMP_COLS:
+                                s = ds[d].dropna(); mu = s.mean()
+                                cv_wts[d] = (s.std()/abs(mu)) if mu!=0 else 0.0
+                            total_cv = sum(cv_wts.values())
+                            wts = {d: cv_wts[d]/total_cv if total_cv>0 else 0.25
+                                   for d in PRECOMP_COLS}
+                            raw_ucs2 = sum(ds[d]*wts[d] for d in PRECOMP_COLS)
+                            mn2,mx2 = raw_ucs2.min(), raw_ucs2.max()
+                            ds["UCS"] = (raw_ucs2-mn2)/(mx2-mn2)*100 if mx2>mn2 else raw_ucs2
+
+                        # Carry cluster and anomaly labels if present
+                        if "Cluster_label" in raw_df.columns:
+                            lbl = raw_df["Cluster_label"].astype(str)
+                            ds["Cluster"] = lbl.str.extract(r"(Cluster \d)")[0].fillna(lbl)
+                        elif "Cluster" in raw_df.columns:
+                            ds["Cluster"] = raw_df["Cluster"].map(
+                                {0:"Cluster 1",1:"Cluster 2",
+                                 "0":"Cluster 1","1":"Cluster 2"}
+                            ).fillna(raw_df["Cluster"].astype(str))
+                        if "Anomaly" in raw_df.columns:
+                            ds["Anomaly"] = raw_df["Anomaly"]
+                        if "Anomaly_score" in raw_df.columns:
+                            ds["IF_score"] = pd.to_numeric(raw_df["Anomaly_score"], errors="coerce")
+
+                    else:
+                        # Raw indicator mode — PCA + CV weighting
+                        domain_scores = {}
+                        for dom, cols in auto_map.items():
+                            if not cols:
+                                domain_scores[dom] = pd.Series(np.nan, index=raw_df.index)
+                                continue
+                            sub = raw_df[cols].copy().apply(pd.to_numeric, errors="coerce")
+                            sub = sub.fillna(sub.median())
+                            good = ["immuniz","vaccine","bcg","dpt","polio","measles",
+                                    "vitamin","insur","skilled","antenatal"]
+                            for c in cols:
+                                if any(kw in c.lower() for kw in good):
+                                    sub[c] = 100-sub[c].clip(0,100) if sub[c].max()<=100 else -sub[c]
+                            if len(cols)==1 or not SKLEARN_OK:
+                                score = sub.iloc[:,0]
+                            else:
+                                try:
+                                    Xs = StandardScaler().fit_transform(sub)
+                                    score = pd.Series(
+                                        PCA(n_components=1).fit_transform(Xs).ravel(),
+                                        index=raw_df.index)
+                                except Exception:
+                                    score = sub.mean(axis=1)
+                            mn,mx = score.min(),score.max()
+                            domain_scores[dom] = ((score-mn)/(mx-mn)*100
+                                                  if mx>mn else pd.Series(50.0, index=raw_df.index))
+                        ds = pd.DataFrame(domain_scores)
+                        cv_wts = {}
+                        for d in KDHS_KWS:
+                            s = ds[d].dropna(); mu = s.mean()
+                            cv_wts[d] = (s.std()/abs(mu)) if mu!=0 else 0.0
+                        total_cv = sum(cv_wts.values())
+                        wts = {d: cv_wts[d]/total_cv if total_cv>0 else 0.25 for d in KDHS_KWS}
+                        raw_ucs = sum(ds[d]*wts[d] for d in KDHS_KWS)
+                        mn,mx = raw_ucs.min(),raw_ucs.max()
+                        ds["UCS"] = (raw_ucs-mn)/(mx-mn)*100 if mx>mn else raw_ucs
+
+                    # Safe rank — handles NaN/inf
+                    ucs_clean = pd.to_numeric(ds["UCS"], errors="coerce")
+                    ds["UCS"] = ucs_clean
+                    ds["Rank"] = (ucs_clean
+                                  .fillna(0)
+                                  .rank(ascending=False, na_option="bottom")
+                                  .astype("Int64"))
                     st.session_state["pred_results"] = ds
                     box(f"Computed UCS for {len(ds)} counties.","ok")
                 except Exception as e:
@@ -816,20 +950,20 @@ elif page == "KDHS Predictor":
 
             common = [c for c in results.index if c in df.index]
             if len(common)>=5:
-                st.markdown("##### Comparison with Dissertation Reference (Table 4.3)")
+                st.markdown("##### Comparison with Dissertation Reference")
                 comp = pd.DataFrame({
                     "Predicted": results.loc[common,"UCS"],
-                    "Reference (Table 4.3)": df.loc[common,"UCS"],
+                    "Reference": df.loc[common,"UCS"],
                 })
                 corr = comp.corr().iloc[0,1]
-                fig_cmp = px.scatter(comp,x="Reference (Table 4.3)",y="Predicted",
+                fig_cmp = px.scatter(comp,x="Reference",y="Predicted",
                     hover_name=comp.index,
                     title=f"Predicted vs Reference UCS — r = {corr:.3f}")
                 fig_cmp.add_trace(go.Scatter(x=[0,100],y=[0,100],mode="lines",
                     line=dict(dash="dash",color="grey"),name="Perfect agreement"))
                 fig_cmp.update_layout(height=300,margin=dict(l=20,r=20,t=35,b=20))
                 st.plotly_chart(fig_cmp,use_container_width=True)
-                if corr>0.8: box(f"Strong agreement with Table 4.3 reference (r={corr:.3f}).","ok")
+                if corr>0.8: box(f"Strong agreement withreference (r={corr:.3f}).","ok")
                 elif corr>0.5: box(f"Moderate agreement (r={corr:.3f}). Review column mappings.","warn")
                 else: box(f"Weak agreement (r={corr:.3f}). Check assignments and data scale.","err")
 
