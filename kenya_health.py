@@ -1,9 +1,9 @@
 """
-kenya_health.py — Kenya Health Gap Dashboard
+kenya_health.py - Kenya Health Gap Dashboard
 =============================================
 Cynthia Ngugi | Reg. 138725 | MSc Data Science | Strathmore University | March 2026
 
-All figures are sourced directly from the submitted dissertation:— UCS rankings, all 47 counties— Domain inter-correlation matrix— Domain importance (r with UCS)— PCA transparency report— K-Means validation metrics— Cluster mean domain profiles— Classification model performance— XGBoost feature importance— SHAP force plot, Wajir county— Isolation Forest anomaly scores
+All figures are sourced directly from the submitted dissertation:- UCS rankings, all 47 counties- Domain inter-correlation matrix- Domain importance (r with UCS)- PCA transparency report- K-Means validation metrics- Cluster mean domain profiles- Classification model performance- XGBoost feature importance- SHAP force plot, Wajir county- Isolation Forest anomaly scores
 
 Run: streamlit run kenya_health.py
 """
@@ -266,7 +266,7 @@ st.markdown("""
     <span class="moh-badge">MOH</span>
   </div>
   <div class="moh-title">
-    <div class="ministry">Ministry of Health — Republic of Kenya</div>
+    <div class="ministry">Ministry of Health - Republic of Kenya</div>
     <div class="subtitle">Kenya Health Equity Monitor &nbsp;·&nbsp; Underserved County Score (UCS)</div>
   </div>
   <div class="moh-meta">KDHS 2020 / 2022</div>
@@ -314,7 +314,7 @@ if page == "Overview":
     with k2: kpi(f"{df['UCS'].mean():.1f}","Mean UCS",C["orange"])
     with k3: kpi("100.00","Max UCS (Wajir)",C["cl1"])
     with k4: kpi("0.00","Min UCS (Nairobi)",C["cl2"])
-    with k5: kpi("8","Cluster 1 — ASAL",C["cl1"])
+    with k5: kpi("8","Cluster 1 - ASAL",C["cl1"])
     with k6: kpi("5","Anomalous Counties",C["anom"])
 
     st.markdown("<hr>",unsafe_allow_html=True)
@@ -347,7 +347,7 @@ if page == "Overview":
                 plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig2,use_container_width=True)
 
-        st.markdown("##### Domain Importance — r with UCS")
+        st.markdown("##### Domain Importance - r with UCS")
         di = pd.DataFrame({
             "Domain":   ["Healthcare Access (HAI)","Disease Burden (DBI)",
                          "Population Vulnerability (PVI)","Immunisation Coverage (ICI)"],
@@ -364,15 +364,15 @@ if page == "Overview":
             yaxis_tickfont_size=8,
             plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_d,use_container_width=True)
-        st.caption("ICI r=0.068 — operationally independent of all other domains. "
+        st.caption("ICI r=0.068 - operationally independent of all other domains. "
                    "ICI-HAI r=0.073, ICI-PVI r=0.043, ICI-DBI r=-0.044. "
                    "ICI explains <1% of UCS variance (r2=0.005).")
 
     with right:
-        st.markdown("##### K-Means — k=2 Optimal")
+        st.markdown("##### K-Means - k=2 Optimal")
         fig_c = go.Figure(go.Pie(
-            labels=["Cluster 1 — Structurally Underserved (n=8)",
-                    "Cluster 2 — Moderately Served (n=39)"],
+            labels=["Cluster 1 - Structurally Underserved (n=8)",
+                    "Cluster 2 - Moderately Served (n=39)"],
             values=[8,39],hole=0.52,
             marker_colors=[C["cl1"],C["cl2"]],
             textinfo="percent",textfont_size=9))
@@ -382,12 +382,12 @@ if page == "Overview":
             annotations=[dict(text="k=2<br>Sil=0.459",x=0.5,y=0.5,font_size=8,showarrow=False)],
             paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_c,use_container_width=True)
-        st.caption("Silhouette=0.4595, Davies-Bouldin=0.612, Calinski-Harabasz=41.3 — "
+        st.caption("Silhouette=0.4595, Davies-Bouldin=0.612, Calinski-Harabasz=41.3 - "
                    "all favour k=2. Silhouette drops 0.46→0.16 at k=3.")
 
-        st.markdown("##### UCS Map — 47 Counties")
+        st.markdown("##### UCS Map - 47 Counties")
         mf = st.selectbox("Filter",["All Counties",
-            "Cluster 1 — Structurally Underserved","Cluster 2 — Moderately Served"],
+            "Cluster 1 - Structurally Underserved","Cluster 2 - Moderately Served"],
             key="ov_f",label_visibility="collapsed")
         mdf = df.copy()
         if "Cluster 1" in mf: mdf = mdf[mdf["Cluster"]=="Cluster 1"]
@@ -400,7 +400,7 @@ if page == "Overview":
                 col = "red" if row["Cluster"]=="Cluster 1" else "blue"
                 popup = (f"<b>{county}</b><br>UCS: {row['UCS']:.2f}<br>"
                          f"Rank: {row['Rank']} / 47<br>Cluster: {row['Cluster']}<br>"
-                         f"Anomaly: {'Yes — IF ' + str(row['IF_score']) if row['Anomaly']=='Anomaly' else 'No'}")
+                         f"Anomaly: {'Yes - IF ' + str(row['IF_score']) if row['Anomaly']=='Anomaly' else 'No'}")
                 is_a = row["Anomaly"]=="Anomaly"
                 folium.CircleMarker(
                     location=[row["lat"],row["lon"]],
@@ -431,14 +431,14 @@ if page == "Overview":
 
 # ── MAP ───────────────────────────────────────────────────────────────────────
 elif page == "Map":
-    st.markdown("##### Interactive Map — 47 Counties")
+    st.markdown("##### Interactive Map - 47 Counties")
     st.caption("Red = Cluster 1 Structurally Underserved · Blue = Cluster 2 Moderately Served · "
                "Orange border = Isolation Forest anomaly")
     c1,c2 = st.columns([2,1])
     with c1:
         mf = st.selectbox("Filter",["All Counties",
-            "Cluster 1 — Structurally Underserved (n=8)",
-            "Cluster 2 — Moderately Served (n=39)",
+            "Cluster 1 - Structurally Underserved (n=8)",
+            "Cluster 2 - Moderately Served (n=39)",
             "Anomalous Counties Only (n=5)"])
     mdf = df.copy()
     if "Cluster 1" in mf: mdf = mdf[mdf["Cluster"]=="Cluster 1"]
@@ -454,7 +454,7 @@ elif page == "Map":
             popup = (f"<div style='width:200px'><b>{county}</b><br>"
                      f"UCS: <b>{row['UCS']:.2f}</b><br>Rank: {row['Rank']}/47<br>"
                      f"Cluster: {row['Cluster']}<br>"
-                     f"{'Anomaly: Yes — IF score '+str(row['IF_score']) if row['Anomaly']=='Anomaly' else 'Anomaly: No'}</div>")
+                     f"{'Anomaly: Yes - IF score '+str(row['IF_score']) if row['Anomaly']=='Anomaly' else 'Anomaly: No'}</div>")
             is_a = row["Anomaly"]=="Anomaly"
             folium.CircleMarker(
                 location=[row["lat"],row["lon"]],radius=6+row["UCS"]/16,
@@ -470,9 +470,9 @@ elif page == "Map":
         st.markdown("""
 | Marker | Cluster | n | UCS Range |
 |---|---|---|---|
-| Red | Cluster 1 — Structurally Underserved | 8 | 54.46–100.00 |
-| Blue | Cluster 2 — Moderately Served | 39 | 0.00–89.23 |
-| Orange border | Isolation Forest anomaly | 5 | — |
+| Red | Cluster 1 - Structurally Underserved | 8 | 54.46–100.00 |
+| Blue | Cluster 2 - Moderately Served | 39 | 0.00–89.23 |
+| Orange border | Isolation Forest anomaly | 5 | - |
 """)
     with cb:
         box("Cluster 1: Wajir · Turkana · Tana River · Marsabit · "
@@ -481,7 +481,7 @@ elif page == "Map":
 
 # ── UCS RANKINGS ──────────────────────────────────────────────────────────────
 elif page == "UCS Rankings":
-    st.markdown("##### UCS Rankings — All 47 Counties")
+    st.markdown("##### UCS Rankings - All 47 Counties")
     st.caption("Higher UCS = more underserved. Red = Cluster 1 ASAL. Blue = Cluster 2. Triangle = anomaly.")
 
     sdf = df.sort_values("UCS",ascending=False).reset_index()
@@ -504,9 +504,9 @@ elif page == "UCS Rankings":
 
 # ── CLUSTERING ────────────────────────────────────────────────────────────────
 elif page == "Clustering":
-    st.markdown("##### K-Means Clustering — k=2 Optimal")
+    st.markdown("##### K-Means Clustering - k=2 Optimal")
     st.caption("All three internal validation metrics converge on k=2. "
-               "Silhouette drops 0.4595→0.1554 at k=3 — a decisive break.")
+               "Silhouette drops 0.4595→0.1554 at k=3 - a decisive break.")
 
     c1,c2 = st.columns(2)
     with c1:
@@ -534,18 +534,18 @@ elif page == "Clustering":
                    "Calinski-Harabasz=41.3 (max).")
 
     with c2:
-        box("<b>Cluster 1 — Structurally Underserved (n=8)</b><br>"
+        box("<b>Cluster 1 - Structurally Underserved (n=8)</b><br>"
             "Wajir · Turkana · Tana River · Marsabit · Samburu · Mandera · West Pokot · Garissa<br>"
             "All ASAL counties. UCS range: 54.46–100.00.<br>"
             "Profile: High HAI · High PVI · High DBI · Variable ICI.","err")
-        box("<b>Cluster 2 — Moderately Served (n=39)</b><br>"
+        box("<b>Cluster 2 - Moderately Served (n=39)</b><br>"
             "All remaining counties. Low–Moderate HAI, PVI, DBI · Moderate ICI.<br>"
             "Internal range: Kilifi (89.23) to Nairobi (0.00).","ok")
         box("<b>HDBSCAN Robustness Check</b><br>"
             "Applied to the same standardised sub-domain feature space "
             "(min_cluster_size=5, min_samples=3). The 8 counties assigned to Cluster 1 "
             "by K-Means were grouped identically by HDBSCAN. "
-            "The ASAL partition reflects genuine high-density structure — "
+            "The ASAL partition reflects genuine high-density structure - "
             "not a K-Means geometry artefact.","info")
 
         c1_df = df[df["Cluster"]=="Cluster 1"].sort_values("UCS",ascending=False).reset_index()
@@ -575,9 +575,9 @@ elif page == "Anomaly Detection":
         "Key observation":[
             "HAI dominant. SHAP +2.34. Net SHAP = +5.54, highest of any county.",
             "High HAI and DBI. Moderate PVI relative to severe access deficit.",
-            "Extreme PVI — poverty and WASH are the primary lever.",
+            "Extreme PVI - poverty and WASH are the primary lever.",
             "Most extreme IF score (−0.110). Distinct domain imbalance from Wajir/Turkana.",
-            "Rank 20 — moderate composite, 2nd most anomalous. High HAI vs PVI and DBI.",
+            "Rank 20 - moderate composite, 2nd most anomalous. High HAI vs PVI and DBI.",
         ],
     })
 
@@ -608,12 +608,12 @@ elif page == "Anomaly Detection":
 
     with cb:
         for _,row in anom_df.iterrows():
-            box(f"<b>{row['County']}</b> — UCS {row['UCS']:.2f} | Rank {row['Rank']} | "
+            box(f"<b>{row['County']}</b> - UCS {row['UCS']:.2f} | Rank {row['Rank']} | "
                 f"IF score {row['IF_score']}<br>{row['Key observation']}","warn")
         box("<b>Why Garissa matters:</b><br>"
-            "UCS 54.46 (rank 20) — any top-10 targeting cutoff excludes it. "
+            "UCS 54.46 (rank 20) - any top-10 targeting cutoff excludes it. "
             "Yet Isolation Forest assigns it the 2nd most extreme score (−0.096) "
-            "because its domain combination — disproportionately high HAI vs PVI and DBI — "
+            "because its domain combination - disproportionately high HAI vs PVI and DBI - "
             "is structurally atypical even within Cluster 2. "
             "Anomaly detection catches what ranking alone cannot.","err")
 
@@ -664,11 +664,11 @@ elif page == "Classification & SHAP":
             yaxis_tickfont_size=9,
             plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_f,use_container_width=True)
-        box("HAI dominates (42.3%). ICI = 3.9% — consistent with r²=0.005. "
+        box("HAI dominates (42.3%). ICI = 3.9% - consistent with r²=0.005. "
             "Both methods confirm the same hierarchy: HAI > DBI > PVI >> ICI.","info")
 
     st.markdown("---")
-    st.markdown("##### SHAP Force Plot: Wajir County (UCS = 100.00) —")
+    st.markdown("##### SHAP Force Plot: Wajir County (UCS = 100.00) -")
     shap_df_w = pd.DataFrame({
         "Domain":    ["Healthcare Access (HAI)","Disease Burden (DBI)",
                       "Population Vulnerability (PVI)","Immunisation Coverage (ICI)"],
@@ -691,7 +691,7 @@ elif page == "Classification & SHAP":
             yaxis_title="",yaxis_tickfont_size=9,
             plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_sh,use_container_width=True)
-        st.caption("Net SHAP = +5.54 — highest of any county.")
+        st.caption("Net SHAP = +5.54 - highest of any county.")
     with sr:
         st.markdown("##### Intervention Priority")
         for _,row in shap_df_w.iterrows():
@@ -718,10 +718,10 @@ elif page == "KDHS Predictor":
                "predict UCS using CV weighting (dissertation methodology,).")
 
     s1,s2,s3,s4 = st.columns(4)
-    with s1: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">1 — Upload CSV</span>',unsafe_allow_html=True)
-    with s2: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">2 — Review mapping</span>',unsafe_allow_html=True)
-    with s3: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">3 — Compute scores</span>',unsafe_allow_html=True)
-    with s4: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">4 — View predictions</span>',unsafe_allow_html=True)
+    with s1: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">1 - Upload CSV</span>',unsafe_allow_html=True)
+    with s2: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">2 - Review mapping</span>',unsafe_allow_html=True)
+    with s3: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">3 - Compute scores</span>',unsafe_allow_html=True)
+    with s4: st.markdown('<span style="font-size:.78rem;font-weight:600;color:#1E3888">4 - View predictions</span>',unsafe_allow_html=True)
     st.markdown("---")
 
     KDHS_KWS = {
@@ -814,7 +814,7 @@ elif page == "KDHS Predictor":
         has_ucs_col = "UCS" in raw_df.columns
 
         if has_precomp:
-            box("Pre-computed domain scores detected — reading directly from your file.", "ok")
+            box("Pre-computed domain scores detected - reading directly from your file.", "ok")
         else:
             mc1,mc2,mc3,mc4 = st.columns(4)
             for mcol,dom in zip([mc1,mc2,mc3,mc4],KDHS_KWS.keys()):
@@ -867,7 +867,7 @@ elif page == "KDHS Predictor":
                             ds["IF_score"] = pd.to_numeric(raw_df["Anomaly_score"], errors="coerce")
 
                     else:
-                        # Raw indicator mode — PCA + CV weighting
+                        # Raw indicator mode - PCA + CV weighting
                         domain_scores = {}
                         for dom, cols in auto_map.items():
                             if not cols:
@@ -904,7 +904,7 @@ elif page == "KDHS Predictor":
                         mn,mx = raw_ucs.min(),raw_ucs.max()
                         ds["UCS"] = (raw_ucs-mn)/(mx-mn)*100 if mx>mn else raw_ucs
 
-                    # Safe rank — handles NaN/inf
+                    # Safe rank - handles NaN/inf
                     ucs_clean = pd.to_numeric(ds["UCS"], errors="coerce")
                     ds["UCS"] = ucs_clean
                     ds["Rank"] = (ucs_clean
@@ -958,7 +958,7 @@ elif page == "KDHS Predictor":
                 corr = comp.corr().iloc[0,1]
                 fig_cmp = px.scatter(comp,x="Reference",y="Predicted",
                     hover_name=comp.index,
-                    title=f"Predicted vs Reference UCS — r = {corr:.3f}")
+                    title=f"Predicted vs Reference UCS - r = {corr:.3f}")
                 fig_cmp.add_trace(go.Scatter(x=[0,100],y=[0,100],mode="lines",
                     line=dict(dash="dash",color="grey"),name="Perfect agreement"))
                 fig_cmp.update_layout(height=300,margin=dict(l=20,r=20,t=35,b=20))
